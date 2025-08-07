@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-tdud_6p(=0k37ew^*irz!7eiim(7t@g4er^=)vdwcz5vsx@av3
 DEBUG = True
 
 ALLOWED_HOSTS = []
-AUTH_USER_MODEL = 'authen.CustomUser'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
 # Application definition
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'authen',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -56,7 +56,7 @@ ROOT_URLCONF = 'vswap.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ BASE_DIR / 'authen/templates' ],
+        'DIRS': [ BASE_DIR / 'accounts/templates' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
