@@ -2,10 +2,11 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
-from .forms import CustomUserCreationForm
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
+from .forms import CustomUserChangeForm, CustomUserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+
 
 def register_view(request):
     if request.method == "POST":
@@ -33,6 +34,26 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+
+def profile_view(request):
+    if request.user.is_authenticated:
+        return render(request, "accounts/profile.html", {"user": request.user})
+    else:
+        return redirect("login")
+    
+
+def user_update_view(request):
+    if request.method == "POST":
+        form = CustomUserChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("profile")
+    else:
+        form = CustomUserChangeForm(instance=request.user)
+    return render(request, "accounts/update_profile.html", {"form": form})
+
 @login_required
 def home_view(request):
     return render(request, "accounts/home.html")
+
+

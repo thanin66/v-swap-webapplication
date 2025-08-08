@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" x-data>
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-xl font-semibold">Profile of {{ user.username }}</h1>
+        <a href="{% url 'home' %}" class="text-black-600 hover:underline">Home</a>
+        <a href="{% url 'logout' %}" class="text-red-600 hover:underline">Log out</a>
+    </nav>
+
+    <main class="flex flex-col items-center justify-center mt-20">
+        <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-4">Your Profile</h2>
+            <ul class="space-y-4">
+                {% if user.profile.profile_picture %}
+                    <li class="flex items-center space-x-4">
+                        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full shadow">
+                        <div>
+                            <strong>Profile Picture</strong>
+                        </div>
+                    </li>
+                {% endif %}
+
+                <li><strong>Username:</strong> {{ user.username }}</li>
+
+                <li><strong>Full Name:</strong> 
+                    {{ user.first_name }} {{ user.last_name }}
+                </li>
+
+                <li><strong>Date of Birth:</strong> 
+                    {{ user.date_of_birth}}
+                </li>
+
+                {% if user.profile.bio %}
+                    <li><strong>Bio:</strong> {{ user.profile.bio }}</li>
+                {% endif %}
+
+                <li><strong>Email:</strong> {{ user.email }}</li>
+                <li><strong>Date Joined:</strong> {{ user.date_joined|date:"d M Y" }}</li>
+            </ul>
+
+            <div class="mt-6">
+                <a href="{% url 'update_profile' %}" class="text-indigo-600 hover:underline">Update Profile</a>
+                <span class="mx-2">|</span>
+            </div>
+        </div>

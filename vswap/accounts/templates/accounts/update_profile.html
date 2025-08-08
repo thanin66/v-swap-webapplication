@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" x-data>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>update_profile</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-xl font-semibold">Update Profile</h1>
+        <a href="{% url 'logout' %}" class="text-red-600 hover:underline">Log out</a>
+    </nav>
+
+    <main class="flex flex-col items-center justify-center mt-20">
+        <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-4">Update your profile</h2>
+            <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                {% if form.errors %}
+                    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                        <ul class="list-disc list-inside">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                {{ form.as_p }}
+                
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Update Profile</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr("#id_date_of_birth", {
+            dateFormat: "Y-m-d",
+            maxDate: "today"
+        });
+    </script>
+</body>
+</html>
