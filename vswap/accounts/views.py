@@ -6,6 +6,7 @@ from django.contrib.auth import login, authenticate, logout, update_session_auth
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from posts.models import Post  # Adjust the import path if Post is in a different app
 
 
 def register_view(request):
@@ -37,11 +38,12 @@ def logout_view(request):
 
 def profile_view(request):
     if request.user.is_authenticated:
-        return render(request, "accounts/profile.html", {"user": request.user})
+        posts = Post.objects.filter(owner=request.user).order_by('-created_at')
+        return render(request, "accounts/profile.html", {"user": request.user, "posts": posts})
     else:
         return redirect("login")
     
-
+@login_required
 def user_update_view(request):
     if request.method == "POST":
         form = CustomUserChangeForm(request.POST, instance=request.user)

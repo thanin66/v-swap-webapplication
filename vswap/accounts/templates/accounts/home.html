@@ -12,12 +12,23 @@
     <h1 class="text-xxl font-semibold">Profile of {{ user.username }}</h1>
     <a href="{% url 'profile' %}" class="text-black-600 hover:underline">Profile</a>
   </nav>
+    <main class="flex flex-col items-center justify-center mt-20">
+      <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
+        <h2 class="text-2xl font-bold mb-4">Main Page</h2>
 
-  <main class="flex flex-col items-center justify-center mt-20">
-    <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
-      <h2 class="text-2xl font-bold mb-4">main page</h2>
-      <ul class="space-y-2">  
-        
+        <!-- ปุ่มสร้างโพสต์ -->
+        <div class="mb-6 text-center">
+          <a href="{% url 'post_create' %}" 
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+            + โพสต์สินค้าใหม่
+          </a>
+        </div>
+
+        <ul class="space-y-2">
+          <!-- ถ้าจะใส่ list โพสต์ล่าสุดก็ทำได้ -->
+        </ul>
+      </div>
+    </main>
       </ul>
     </div>
   </main>
