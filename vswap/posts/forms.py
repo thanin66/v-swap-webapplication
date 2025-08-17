@@ -1,18 +1,26 @@
 from django import forms
-from .models import Post
+from .models import Post, Swap, BuySell, Donation
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'description', 'post_type', 'price', 'image']
-        widgets = {
-            'title': forms.TextInput(attrs={'placeholder': 'Enter post title'}),
-            'description': forms.Textarea(attrs={'placeholder': 'Enter post description'}),
-            'post_type': forms.Select(),
-            'price': forms.NumberInput(attrs={'placeholder': 'Enter price (if applicable)'}),
-            'image': forms.ClearableFileInput(),
-        }
-    
+        fields = ['title', 'description', 'post_type', 'image']
+
+class SwapForm(forms.ModelForm):
+    class Meta:
+        model = Swap
+        fields = ['title', 'description', 'post_type', 'swap_item_description', 'image']
+
+class BuySellForm(forms.ModelForm):
+    class Meta:
+        model = BuySell
+        fields = ['title', 'description', 'post_type', 'price', 'is_buying', 'image']
+
+class DonationForm(forms.ModelForm):
+    class Meta:
+        model = Donation
+        fields = ['title', 'description', 'post_type', 'condition', 'image']
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['post_type'].empty_label = "Select post type"
+        self.fields['condition'].required = False  # Make condition optional

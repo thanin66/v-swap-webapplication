@@ -1,34 +1,51 @@
 <!DOCTYPE html>
 <html lang="en" x-data>
-<head> 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile</title>
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - All Posts</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-800">
-  <nav class="bg-white shadow p-4 flex justify-between items-center">
-    <h1 class="text-xxl font-semibold">Profile of {{ user.username }}</h1>
-    <a href="{% url 'profile' %}" class="text-black-600 hover:underline">Profile</a>
-  </nav>
-    <main class="flex flex-col items-center justify-center mt-20">
-      <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
-        <h2 class="text-2xl font-bold mb-4">Main Page</h2>
 
-        <!-- ปุ่มสร้างโพสต์ -->
-        <div class="mb-6 text-center">
-          <a href="{% url 'post_create' %}" 
-            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-            + โพสต์สินค้าใหม่
-          </a>
+    <!-- Navbar -->
+    <nav class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-indigo-600">V-Swap</h1>
+        <div class="space-x-4">
+            <a href="{% url 'profile' %}" class="text-gray-600 hover:text-indigo-600">Profile</a>
+            <a href="{% url 'post_type_select' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Create Post</a>
         </div>
+    </nav>
 
-        <ul class="space-y-2">
-          <!-- ถ้าจะใส่ list โพสต์ล่าสุดก็ทำได้ -->
-        </ul>
-      </div>
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto mt-10 px-4">
+        <h2 class="text-3xl font-bold mb-6">Latest Posts</h2>
+
+        <!-- Post List -->
+        <div class="grid gap-6">
+            {% for post in posts %}
+                <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xl font-semibold text-gray-800">{{ post.title }}</h3>
+                        <span class="text-sm text-gray-500">{{ post.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">{{ post.description|truncatewords:30 }}</p>
+                    
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="rounded-lg mb-4 max-h-60 object-cover w-full">
+                    {% endif %}
+                    
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'post_detail' post.id %}" class="text-indigo-600 hover:underline">View Details</a>
+                        <span class="text-sm text-gray-500">By {{ post.owner.username }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">No posts available right now.</p>
+            {% endfor %}
+        </div>
     </main>
-      </ul>
-    </div>
-  </main>
+
+</body>
+</html>

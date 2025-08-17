@@ -10,14 +10,32 @@
 <body class="min-h-screen bg-gray-50 text-gray-800">
     <nav class="bg-white shadow p-4 flex justify-between items-center">
         <h1 class="text-xl font-semibold">Post Detail</h1>
-        <a href="{% url 'post_list' %}" class="text-indigo-600 hover:underline">Back to Posts</a>
-        <a href="{% url 'home' %}" class="text-black-600 hover:underline">Home</a>
+        <a href="{% url 'post_list' %}" class="text-blue-600 hover:underline">Back to List</a>
     </nav>
+    <main class="max-w-lg mx-auto mt-10 bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-bold mb-6">{{ post.title }}</h2>
+        <p class="mb-4">{{ post.description }}</p>
+        <p class="text-gray-600 mb-4">Posted by: {{ post.author.username }}</p>
+        
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded mb-4">
+        {% endif %}
+        
+        <div class="space-y-4">
+            {% if post.post_type == 'swap' %}
+                <p><strong>Swap Item Description:</strong> {{ post.swap_item_description }}</p>
+            {% elif post.post_type == 'buy_sell' %}
+                <p><strong>Price:</strong> {{ post.price }} {{ post.currency }}</p>
+            {% elif post.post_type == 'donation' %}
+                <p><strong>Donation Details:</strong> {{ post.donation_details }}</p>
+            {% endif %}
+        </div>
 
-    <main class="flex flex-col items-center justify-center mt-20">
-        <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
-            <h2 class="text-2xl font-bold mb-4">{{ post.title }}</h2>
-            <p class="mb-4">{{ post.content }}</p>
-            <span class="text-sm text-gray-500">{{ post.created_at|date:"d M Y H:i" }}</span>
+        <div class="mt-6">
+            <a href="{% url 'post_edit' post.id %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Edit Post</a>
+            <form method="post" action="{% url 'post_delete' post.id %}" class="inline-block ml-2">
+                {% csrf_token %}
+                <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
+            </form>
         </div>
     </main>
