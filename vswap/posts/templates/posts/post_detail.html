@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" x-data>
+{% extends "base.html" %}
+
+{% block title %}Post Details{% endblock %}
+
+{% block content %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +12,11 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-800">
-    <nav class="bg-white shadow p-4 flex justify-between items-center">
-        <h1 class="text-xl font-semibold">Post Detail</h1>
-        <a href="{% url 'post_list' %}" class="text-blue-600 hover:underline">Back to List</a>
-    </nav>
+
     <main class="max-w-lg mx-auto mt-10 bg-white rounded-lg shadow p-6">
         <h2 class="text-2xl font-bold mb-6">{{ post.title }}</h2>
         <p class="mb-4">{{ post.description }}</p>
-        <p class="text-gray-600 mb-4">Posted by: {{ post.author.username }}</p>
-        
+        <p class="text-gray-600 mb-4">Posted by: {{ post.owner.username }}</p>
         {% if post.image %}
             <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded mb-4">
         {% endif %}
@@ -31,11 +31,18 @@
             {% endif %}
         </div>
 
+        {% if post.owner == user %}
         <div class="mt-6">
             <a href="{% url 'post_edit' post.id %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Edit Post</a>
             <form method="post" action="{% url 'post_delete' post.id %}" class="inline-block ml-2">
-                {% csrf_token %}
-                <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
+            </form>
+        </div>
+        {% endif %}
             </form>
         </div>
     </main>
+</body>
+</html>
+{% endblock %}

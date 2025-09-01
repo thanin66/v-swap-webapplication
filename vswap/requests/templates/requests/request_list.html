@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>คำขอที่ได้รับ</h2>
+<ul>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post detail</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+  {% for req in requests %}
+    <li>
+      {{ req.requester }} ขอสำหรับ "{{ req.post.title }}" 
+      - สถานะ: {{ req.get_status_display }}
+      <a href="{% url 'respond_request' req.id 'accept' %}">ยอมรับ</a> | 
+      <a href="{% url 'respond_request' req.id 'reject' %}">ปฏิเสธ</a>
+    </li>
+  {% empty %}
+    <p>ยังไม่มีคำขอ</p>
+  {% endfor %}
+</ul>
+{% endblock %}

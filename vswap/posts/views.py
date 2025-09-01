@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Post
+from .models import Post, Swap, BuySell, Donation
 from .forms import BuySellForm, DonationForm, PostForm, SwapForm
 
 def post_list(request):
@@ -37,28 +37,28 @@ def post_create(request, post_type):
         form = form_class()
 
     return render(request, 'posts/post_form.html', {'form': form, 'post_type': post_type})
-@login_required
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk, owner=request.user)
-    if request.method == "POST":
-        form = PostForm(request.POST, request.FILES, instance=post)
-        if form.is_valid():
-            form.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm(instance=post)
-    return render(request, 'posts/post_form.html', {'form': form})
 
 @login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk, owner=request.user)
+    
+    # Determine the correct form class based on the post type
+    if isinstance(post, Swap):
+        form_class = SwapForm
+    elif isinstance(post, BuySell):
+        form_class = BuySellForm
+    elif isinstance(post, Donation):
+        form_class = DonationForm
+    else:
+        form_class = PostForm # Fallback for a generic Post
+    
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES, instance=post)
+        form = form_class(request.POST, request.FILES, instance=post)
         if form.is_valid():
             form.save()
             return redirect('post_detail', pk=post.pk)
     else:
-        form = PostForm(instance=post)
+        form = form_class(instance=post)
     return render(request, 'posts/post_form.html', {'form': form})
 
 @login_required
@@ -68,3 +68,10 @@ def post_delete(request, pk):
         post.delete()
         return redirect('post_list')
     return render(request, 'posts/post_confirm_delete.html', {'post': post})
+
+@login_required
+def create_swap_request(request, pk):
+    swap_post = get_object_or_404(Swap, pk=pk)
+    if request.method == "POST":
+        offered_item = request.POST.get("offered_item_description")
+        return redirect("post_detail", pk=swap_post.pk)

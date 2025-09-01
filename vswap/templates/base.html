@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VSwap{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow p-4 flex justify-between items-center">
+        <a href="{% url 'home' %}">Home</a>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'post_list' %}">Posts</a>
+            <a href="{% url 'post_type_select' %}">Create Post</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="text-blue-600 hover:underline">Profile</a>
+                {% if request.resolver_match.url_name == 'profile' %}
+                    <a href="{% url 'logout' %}" class="text-red-600 hover:underline">Logout</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'signup' %}">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+</body>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}

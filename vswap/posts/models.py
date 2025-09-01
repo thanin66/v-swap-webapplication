@@ -24,20 +24,7 @@ class Post(models.Model):
 
 class Swap(Post):
     swap_item_description = models.TextField()
-    # ไม่ต้องเก็บ requester ที่นี่
-    # เพราะโพสต์นึงจะมีหลาย request
 
-class SwapRequest(models.Model):
-    post = models.ForeignKey(Swap, on_delete=models.CASCADE, related_name="requests")
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="swap_requests")
-    offered_item_description = models.TextField()  # ของที่นำมาแลก
-    message = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=[
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
-    ], default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class BuySell(Post):

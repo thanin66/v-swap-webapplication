@@ -1,0 +1,28 @@
+<div class="bg-white shadow p-4 rounded-lg mb-4 flex flex-col justify-between h-full">
+    {% if post.image %}
+        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover rounded-lg mb-4">
+    {% endif %}
+    <div class="flex-grow">
+        <h2 class="font-bold text-xl mb-2">{{ post.title }}</h2>
+        <p class="text-gray-600 mb-2">{{ post.description|truncatewords:20 }}</p>
+        <div class="flex items-center text-sm text-gray-500 mb-4">
+            <span class="mr-2">{{ post.get_post_type_display }}</span>
+            <span class="mr-2">•</span>
+            <span>โดย {{ post.owner.username }}</span>
+        </div>
+    </div>
+    <div class="flex flex-col space-y-2 mt-auto">
+        {% if post.owner == user %}
+            <a href="{% url 'post_edit' post.id %}" class="w-full text-center bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out transform hover:scale-105">
+                แก้ไขโพสต์
+            </a>
+        {% else %}
+            <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105">
+                ส่งคำขอ
+            </a>
+        {% endif %}
+        <a href="{% url 'post_detail' post.id %}" class="w-full text-center text-blue-500 border border-blue-500 py-2 px-4 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition duration-200 ease-in-out transform hover:scale-105">
+            ดูรายละเอียด
+        </a>
+    </div>
+</div>

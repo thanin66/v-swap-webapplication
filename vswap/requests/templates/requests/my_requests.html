@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}คำขอที่ฉันส่ง{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">คำขอที่ฉันส่ง</h1>
+    {% if my_requests %}
+        <ul class="list-disc pl-5 space-y-2">
+            {% for req in my_requests %}
+                <li class="bg-white p-4 rounded-lg shadow-sm">
+                    คุณได้ส่งคำขอสำหรับ "<a href="{% url 'post_detail' pk=req.post.id %}" class="text-blue-600 hover:underline">{{ req.post.title }}</a>"
+                    - สถานะ: <span class="font-semibold">{{ req.get_status_display }}</span>
+                    {% if req.offered_post %}
+                        <p class="text-sm text-gray-500 mt-1">
+                            เสนอแลกด้วย: <a href="{% url 'post_detail' pk=req.offered_post.id %}" class="text-purple-600 hover:underline">{{ req.offered_post.title }}</a>
+                        </p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-600">ยังไม่มีคำขอที่ส่ง</p>
+    {% endif %}
+</div>
+{% endblock %}

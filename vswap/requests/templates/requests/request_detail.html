@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}คำขอที่ได้รับ{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">คำขอที่ได้รับ</h1>
+    {% if requests %}
+        <ul class="list-disc pl-5 space-y-2">
+            {% for req in requests %}
+                <li class="bg-white p-4 rounded-lg shadow-sm">
+                    <span class="font-semibold">{{ req.requester.username }}</span> ขอแลกสำหรับ "<a href="{% url 'post_detail' pk=req.post.id %}" class="text-blue-600 hover:underline">{{ req.post.title }}</a>"
+                    <br>
+                    <span class="text-sm text-gray-500">สถานะ: {{ req.get_status_display }}</span>
+                    
+                    {% if req.offered_post %}
+                        <p class="text-sm text-gray-500 mt-1">
+                            เสนอแลกด้วย: <a href="{% url 'post_detail' pk=req.offered_post.id %}" class="text-purple-600 hover:underline">{{ req.offered_post.title }}</a>
+                        </p>
+                    {% endif %}
+
+                    {% if req.status == 'pending' %}
+                        <div class="mt-2 flex space-x-2">
+                            <a href="{% url 'respond_request' req.id 'accept' %}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm transition-colors">
+                                ยอมรับ
+                            </a>
+                            <a href="{% url 'respond_request' req.id 'reject' %}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm transition-colors">
+                                ปฏิเสธ
+                            </a>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-600">ยังไม่มีคำขอที่ได้รับ</p>
+    {% endif %}
+</div>
+{% endblock %}

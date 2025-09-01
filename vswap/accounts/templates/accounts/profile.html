@@ -1,5 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" x-data="{ tab: 'all' }">
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ user.username }}Profile{% endblock %}
+
+{% block content %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +13,6 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800">
-  
-  <!-- Navbar -->
-  <nav class="bg-white shadow p-4 flex justify-between items-center">
-    <h1 class="text-xl font-semibold">Profile: {{ user.username }}</h1>
-    <div>
-      <a href="{% url 'home' %}" class="text-indigo-600 hover:underline">Home</a>
-    </div>
-  </nav>
 
   <main class="max-w-5xl mx-auto mt-8 px-4">
     
@@ -29,67 +26,90 @@
         <h2 class="text-2xl font-bold">{{ user.username }}</h2>
         <p class="text-gray-600">{{ user.email }}</p>
         <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
+        <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
+          Edit Profile
+        </a>
+      </div>
+
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-3xl font-bold">คำขอ</h2>
+      <div class="flex space-x-2 ml-auto">
+      <a href="{% url 'my_requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+        ดูคำขอที่ส่งไป
+      </a>
+      <a href="{% url 'requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+        ดูคำขอที่เข้ามา
+      </a>
       </div>
     </div>
 
     <!-- Tabs -->
     <div class="flex space-x-4 border-b mb-6">
       <button @click="tab = 'all'" 
-              :class="tab === 'all' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-              class="pb-2 font-semibold">
-        All
+          :class="tab === 'all' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
+          class="pb-2 font-semibold">
+      All
       </button>
       <button @click="tab = 'swap'" 
-              :class="tab === 'swap' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-              class="pb-2 font-semibold">
-        Swap
+          :class="tab === 'swap' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
+          class="pb-2 font-semibold">
+      Swap
       </button>
       <button @click="tab = 'buy_sell'" 
-              :class="tab === 'buy_sell' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-              class="pb-2 font-semibold">
-        Buy/Sell
+          :class="tab === 'buy_sell' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
+          class="pb-2 font-semibold">
+      Buy/Sell
       </button>
       <button @click="tab = 'donation'" 
-              :class="tab === 'donation' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-              class="pb-2 font-semibold">
-        Donation
+          :class="tab === 'donation' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
+          class="pb-2 font-semibold">
+      Donation
       </button>
     </div>
 
-    <!-- Posts Grid -->
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
+ 
+    <h2 class="text-xl font-bold mb-4">โพสต์ของฉัน</h2>
+    <!-- All Posts -->
+    <div x-show="tab === 'all'">
       {% for post in user.posts.all %}
-      <div 
-        x-show="tab === 'all' || tab === '{{ post.post_type }}'"
-        class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col"
-      >
-        {% if post.image %}
-          <img src="{{ post.image.url }}" alt="{{ post.title }}" class="h-40 w-full object-cover">
-        {% endif %}
-        <div class="p-4 flex flex-col flex-grow">
-          <h3 class="text-lg font-bold mb-2">{{ post.title }}</h3>
-          <p class="text-gray-600 flex-grow">{{ post.description|truncatewords:20 }}</p>
-          <div class="mt-4 flex justify-between items-center">
-            <span class="px-2 py-1 rounded text-xs font-semibold 
-                        {% if post.post_type == 'swap' %} bg-blue-100 text-blue-600
-                        {% elif post.post_type == 'buy_sell' %} bg-green-100 text-green-600
-                        {% elif post.post_type == 'donation' %} bg-purple-100 text-purple-600
-                        {% endif %}">
-              {{ post.post_type|title }}
-            </span>
-            <a href="{% url 'post_detail' post.id %}" 
-               class="text-indigo-600 hover:underline text-sm">
-              View
-            </a>
-          </div>
-        </div>
-      </div>
+      {% include "posts/post_card.html" %}
       {% empty %}
-        <p class="text-gray-500 col-span-full">No posts yet.</p>
+      <p>คุณยังไม่ได้สร้างโพสต์</p>
       {% endfor %}
-
+    </div>
+    <!-- Swap Posts -->
+    <div x-show="tab === 'swap'">
+      {% for post in user.posts.all %}
+      {% if post.post_type == 'swap' %}
+        {% include "posts/post_card.html" %}
+      {% endif %}
+      {% empty %}
+      <p>ไม่มีโพสต์ประเภท Swap</p>
+      {% endfor %}
+    </div>
+    <!-- Buy/Sell Posts -->
+    <div x-show="tab === 'buy_sell'">
+      {% for post in user.posts.all %}
+      {% if post.post_type == 'buy_sell' %}
+        {% include "posts/post_card.html" %}
+      {% endif %}
+      {% empty %}
+      <p>ไม่มีโพสต์ประเภท Buy/Sell</p>
+      {% endfor %}
+    </div>
+    <!-- Donation Posts -->
+    <div x-show="tab === 'donation'">
+      {% for post in user.posts.all %}
+      {% if post.post_type == 'donation' %}
+        {% include "posts/post_card.html" %}
+      {% endif %}
+      {% empty %}
+      <p>ไม่มีโพสต์ประเภท Donation</p>
+      {% endfor %}
     </div>
   </main>
 </body>
 </html>
+{% endblock %}
