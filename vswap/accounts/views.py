@@ -79,3 +79,7 @@ def user_update_view(request):
 def home_view(request):
     posts = Post.objects.all().order_by('-created_at')
     return render(request, "accounts/home.html", {"posts": posts})
+
+
+def map_view(request):
+    return render(request, "accounts/leafletmap.html")

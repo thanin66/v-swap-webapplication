@@ -4,8 +4,18 @@ from .models import Post, Swap, BuySell, Donation
 from .forms import BuySellForm, DonationForm, PostForm, SwapForm
 
 def post_list(request):
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'posts/post_list.html', {'posts': posts})
+    buysell_posts = BuySell.objects.all()
+    donation_posts = Donation.objects.all()
+    swap_posts = Swap.objects.all()
+    
+    # รวม QuerySets ทั้งหมดเข้าด้วยกัน
+    all_posts = list(buysell_posts) + list(donation_posts) + list(swap_posts)
+    
+    # เรียงลำดับตามวันที่สร้าง (created_at) จากใหม่ไปเก่า
+    all_posts.sort(key=lambda x: x.created_at, reverse=True)
+    
+    return render(request, 'posts/post_list.html', {'posts': all_posts})
+
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)

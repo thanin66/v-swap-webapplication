@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-
 {% extends "base.html" %}
 
-{% block title %}ส่งคำขอแลกเปลี่ยน{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,45 +11,137 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<div class="container mx-auto max-w-lg p-6 my-8 bg-white rounded-lg shadow-xl border border-gray-200">
-    <div class="text-center mb-6">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">
-            ส่งคำขอแลกเปลี่ยน
-        </h1>
-        <p class="text-lg text-gray-600">สำหรับโพสต์: <span class="font-semibold text-blue-600">{{ post.title }}</span></p>
-    </div>
+<style>
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    .post-type {
+        color: #555;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group label {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group input, 
+    .form-group textarea, 
+    .form-group select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #fff;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+    .button-group {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .small-text {
+        font-size: 12px;
+        color: #888;
+        margin-top: 2px;
+    }
+</style>
 
-    <form method="post" action="{% url 'send_request' post.id %}">
+<div class="container">
+    <h1>ส่งคำขอสำหรับ: {{ post.title }}</h1>
+    <p class="post-type">ประเภท: <strong>{{ post.get_post_type_display }}</strong></p>
+        {% if post.image %}
+            <div class="form-group">
+                <label>รูปภาพของโพสต์:</label>
+                <img src="{{ post.image.url }}" alt="{{ post.title }}"
+                    class="rounded-lg shadow-md w-full object-cover hover:scale-105 transition-transform duration-200 mb-4">
+            </div>
+        {% endif %}
+
+    <form method="post">
         {% csrf_token %}
-        
-        <div class="mb-5">
-            <label for="offered_item" class="block text-gray-700 font-semibold mb-2">
-                ของที่ต้องการนำมาแลก:
-            </label>
-            <input type="text" id="offered_item" name="offered_item" 
-                class="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" 
-                placeholder="เช่น หนังสือมือสอง, กล้องฟิล์ม, หรืออื่นๆ" required>
-        </div>
 
-        <div class="mb-5">
-            <label for="message" class="block text-gray-700 font-semibold mb-2">
-                ข้อความ/รายละเอียดเพิ่มเติม:
-            </label>
-            <textarea id="message" name="message" rows="4" 
-                class="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" 
-                placeholder="ระบุรายละเอียดเพิ่มเติมเกี่ยวกับของที่คุณเสนอแลก เช่น สภาพการใช้งาน หรือข้อเสนออื่นๆ" required></textarea>
-        </div>
+        {% if post.post_type == 'swap' %}
+            <div class="form-group">
+                {{ form.message.label_tag }}
+                {{ form.message }}
+            </div>
+            <div class="form-group">
+                {{ form.offered_product.label_tag }}
+                {{ form.offered_product }}
+            </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-between mt-6 space-y-4 sm:space-y-0 sm:space-x-4">
-            <button type="submit" class="w-full sm:w-auto px-6 py-3 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 transform hover:scale-105">
-                ส่งคำขอ
-            </button>
-            <a href="{% url 'post_detail' pk=post.id %}" 
-               class="w-full sm:w-auto px-6 py-3 text-center font-bold rounded-lg border border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200 transform hover:scale-105">
-                ยกเลิก
-            </a>
-        </div>
-        
+        {% elif post.post_type == 'sale' %}
+            <div class="form-group">
+                {{ form.message.label_tag }}
+                {{ form.message }}
+            </div>
+            <div class="form-group">
+                {{ form.amount.label_tag }}
+                {{ form.amount }}
+            </div>
+
+        {% elif post.post_type == 'donate' %}
+            <div class="form-group">
+                {{ form.reason.label_tag }}
+                {{ form.reason }}
+            </div>
+
+        {% else %}
+            {{ form.as_p }}
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">ส่งคำขอ</button>
     </form>
+
+    <div class="button-group">
+        {% if post.post_type == 'swap' %}
+            <a href="{% url 'post_create' post_type='swap' %}?next={{ post.id }}">
+                <button type="button" class="btn btn-secondary">สร้างโพสต์ใหม่สำหรับแลกเปลี่ยน</button>
+            </a>
+            <p class="small-text">หากคุณต้องการแลกเปลี่ยนแต่ยังไม่มีโพสต์ที่เหมาะสม</p>
+        {% endif %}
+
+        <a href="{% url 'post_detail' pk=post.id %}">
+            <button type="button" class="btn btn-secondary">กลับสู่หน้าโพสต์</button>
+        </a>
+    </div>
 </div>
+
 {% endblock %}

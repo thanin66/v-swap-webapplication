@@ -32,6 +32,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+TAILWIND_APP_NAME = "theme"
 
 # Application definition
 
@@ -46,6 +47,9 @@ INSTALLED_APPS = [
     'posts',
     'vswap',
     'requests',
+    "tailwind",
+    "theme", 
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +82,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'vswap.wsgi.application'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
-
+GDAL_LIBRARY_PATH = 'C:/Users/07/AppData/Local/Programs/OSGeo4W/bin/gdal311.dll'
+GEOS_LIBRARY_PATH = 'C:/Users/07/AppData/Local/Programs/OSGeo4W/bin/geos_c.dll'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

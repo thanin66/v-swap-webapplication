@@ -1,28 +1,38 @@
-<div class="bg-white shadow p-4 rounded-lg mb-4 flex flex-col justify-between h-full">
-    {% if post.image %}
-        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover rounded-lg mb-4">
-    {% endif %}
-    <div class="flex-grow">
-        <h2 class="font-bold text-xl mb-2">{{ post.title }}</h2>
-        <p class="text-gray-600 mb-2">{{ post.description|truncatewords:20 }}</p>
-        <div class="flex items-center text-sm text-gray-500 mb-4">
-            <span class="mr-2">{{ post.get_post_type_display }}</span>
-            <span class="mr-2">•</span>
-            <span>โดย {{ post.owner.username }}</span>
+<article class="group relative flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-indigo-400 dark:border-gray-700 dark:bg-gray-800">
+    <a href="{% url 'post_detail' post.id %}" class="flex-shrink-0 block">
+        {% if post.image %}
+            <div class="h-56 overflow-hidden">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110">
+            </div>
+        {% else %}
+            <div class="h-56 overflow-hidden">
+                <img src="https://t4.ftcdn.net/jpg/05/97/47/95/360_F_597479556_7bbQ7t4Z8k3xbAloHFHVdZIizWK1PdOo.jpg" class="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110" alt="view of a coastal Mediterranean village on a hillside, with small boats in the water." />
+            </div>
+        {% endif %}
+    </a>
+    <div class="flex flex-col flex-grow p-6">
+        <div class="flex-grow">
+            <div class="flex items-center text-sm text-gray-500 mb-2">
+                <span class="mr-2">{{ post.get_post_type_display }}</span>
+                <span class="mr-2">•</span>
+                <span>โดย <span class="font-medium text-gray-700 dark:text-gray-300">{{ post.owner.username }}</span></span>
+            </div>
+            <h3 class="text-xl font-bold leading-tight text-gray-900 dark:text-white mb-2">{{ post.title }}</h3>
+            <p class="text-pretty text-sm text-gray-600 dark:text-gray-400 mb-4">{{ post.description|truncatewords:20 }}</p>
+        </div>
+        <div class="flex flex-col space-y-3 mt-auto">
+            {% if post.owner == user %}
+                <a href="{% url 'post_edit' post.id %}" class="w-full text-center bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 ease-in-out transform hover:scale-105">
+                    แก้ไขโพสต์
+                </a>
+            {% else %}
+                <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105">
+                    ส่งคำขอ
+                </a>
+            {% endif %}
+            <a href="{% url 'post_detail' post.id %}" class="w-full text-center text-blue-600 border border-blue-600 py-3 px-6 rounded-lg font-semibold hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 ease-in-out transform hover:scale-105">
+                ดูรายละเอียด
+            </a>
         </div>
     </div>
-    <div class="flex flex-col space-y-2 mt-auto">
-        {% if post.owner == user %}
-            <a href="{% url 'post_edit' post.id %}" class="w-full text-center bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out transform hover:scale-105">
-                แก้ไขโพสต์
-            </a>
-        {% else %}
-            <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105">
-                ส่งคำขอ
-            </a>
-        {% endif %}
-        <a href="{% url 'post_detail' post.id %}" class="w-full text-center text-blue-500 border border-blue-500 py-2 px-4 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition duration-200 ease-in-out transform hover:scale-105">
-            ดูรายละเอียด
-        </a>
-    </div>
-</div>
+</article>

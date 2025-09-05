@@ -26,11 +26,9 @@ class Swap(Post):
     swap_item_description = models.TextField()
 
 
-
 class BuySell(Post):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_buying = models.BooleanField(default=False)  # True=รับซื้อ, False=ขาย
-
 
 class Donation(Post):
     condition = models.CharField(max_length=255, blank=True)  # เงื่อนไขการรับบริจาค

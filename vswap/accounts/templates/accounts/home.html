@@ -10,21 +10,23 @@
 
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}หน้าแรก{% endblock %}
 
 {% block content %}
-
-<!-- Main Content -->
-<h2 class="text-3xl font-bold mb-6">Latest Posts</h2>
 <body class="bg-gray-100 min-h-screen p-6">
-<main class="max-w-7xl mx-auto">
-    <!-- Post List -->
-    {% for post in posts %}
-        {% include "posts/post_card.html" %}
-    {% empty %}
-        <p>ยังไม่มีโพสต์</p>
-    {% endfor %}
-</main>
-
+    <main class="max-w-7xl mx-auto py-8">
+        <h2 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">โพสต์ล่าสุด</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for post in posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <div class="col-span-full text-center text-gray-500">
+                    <p>ยังไม่มีโพสต์ในขณะนี้</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
 </body>
 {% endblock %}
+</html>

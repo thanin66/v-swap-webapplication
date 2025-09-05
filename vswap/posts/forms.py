@@ -10,7 +10,7 @@ class SwapForm(forms.ModelForm):
     class Meta:
         model = Swap
         fields = ['title', 'description', 'post_type', 'swap_item_description', 'image']
-
+    
 class BuySellForm(forms.ModelForm):
     class Meta:
         model = BuySell

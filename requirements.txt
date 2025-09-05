@@ -6,4 +6,9 @@ djangorestframework-jwt>=1.11,<2.0
 psycopg2>=2.9,<3.0
 django-cors-headers>=3.10,<4.0
 Pillow
+django-tailwind>=2.0,<3.0
+django-widget-tweaks>=1.4,<2.0
+django-leaflet>=0.26,<1.0
+djgeojson>=1.0,<2.0
+gunicorn
 
