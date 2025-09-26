@@ -2,6 +2,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Post, Swap, BuySell, Donation
 from .forms import BuySellForm, DonationForm, PostForm, SwapForm
+from itertools import chain
+from django.views.generic import DetailView
+
+form_mapping = {
+    'swap': SwapForm,
+    'buy_sell': BuySellForm,
+    'donation': DonationForm,
+}
+
 
 def post_list(request):
     buysell_posts = BuySell.objects.all()
@@ -9,31 +18,26 @@ def post_list(request):
     swap_posts = Swap.objects.all()
     
     # รวม QuerySets ทั้งหมดเข้าด้วยกัน
-    all_posts = list(buysell_posts) + list(donation_posts) + list(swap_posts)
-    
+    all_posts = sorted(
+        chain(buysell_posts, donation_posts, swap_posts),
+        key=lambda x: x.created_at,
+        reverse=True
+    )   
     # เรียงลำดับตามวันที่สร้าง (created_at) จากใหม่ไปเก่า
     all_posts.sort(key=lambda x: x.created_at, reverse=True)
     
     return render(request, 'posts/post_list.html', {'posts': all_posts})
 
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'posts/post_detail.html', {'post': post})
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'posts/post_detail.html'
 
-@login_required
-def post_type_select(request):
-    return render(request, 'posts/post_type_select.html')
 
 @login_required
 def post_create(request, post_type):
-    if post_type == 'swap':
-        form_class = SwapForm
-    elif post_type == 'buy_sell':
-        form_class = BuySellForm
-    elif post_type == 'donation':
-        form_class = DonationForm
-    else:
+    form_class = form_mapping.get(post_type)
+    if not form_class:
         return redirect('home')
 
     if request.method == 'POST':
@@ -46,30 +50,31 @@ def post_create(request, post_type):
     else:
         form = form_class()
 
-    return render(request, 'posts/post_form.html', {'form': form, 'post_type': post_type})
+    return render(request, 'posts/post_form.html', {
+        'form': form,
+        'post_type': post_type,
+    })
+
 
 @login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk, owner=request.user)
-    
-    # Determine the correct form class based on the post type
-    if isinstance(post, Swap):
-        form_class = SwapForm
-    elif isinstance(post, BuySell):
-        form_class = BuySellForm
-    elif isinstance(post, Donation):
-        form_class = DonationForm
-    else:
-        form_class = PostForm # Fallback for a generic Post
-    
-    if request.method == "POST":
+    form_class = form_mapping.get(post.post_type)
+    if not form_class:
+        return redirect('home')
+
+    if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=post)
         if form.is_valid():
             form.save()
             return redirect('post_detail', pk=post.pk)
     else:
         form = form_class(instance=post)
-    return render(request, 'posts/post_form.html', {'form': form})
+
+    return render(request, 'posts/post_form.html', {
+        'form': form,
+        'post_type': post.post_type,
+    })
 
 @login_required
 def post_delete(request, pk):
@@ -80,8 +85,9 @@ def post_delete(request, pk):
     return render(request, 'posts/post_confirm_delete.html', {'post': post})
 
 @login_required
-def create_swap_request(request, pk):
-    swap_post = get_object_or_404(Swap, pk=pk)
+def send_request(request, pk):
+    post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
-        offered_item = request.POST.get("offered_item_description")
-        return redirect("post_detail", pk=swap_post.pk)
+        # Logic to handle sending request (e.g., sending email or notification)
+        return redirect('post_detail', pk=post.pk)
+    return render(request, 'posts/send_request.html', {'post': post})

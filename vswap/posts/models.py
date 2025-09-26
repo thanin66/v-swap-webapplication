@@ -6,7 +6,7 @@ class Post(models.Model):
     POST_TYPES = [
         ('swap', 'แลกของ'),
         ('buy_sell', 'ขาย/รับซื้อ'),
-        ('donate', 'บริจาค'),
+        ('donate', 'ให้ฟรี'),
     ]
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
@@ -14,7 +14,8 @@ class Post(models.Model):
     description = models.TextField()
     post_type = models.CharField(max_length=20, choices=POST_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    leaflet_lat = models.FloatField(blank=True, null=True)
+    leaflet_lng = models.FloatField(blank=True, null=True)
     class Meta:
         ordering = ['-created_at']
 

@@ -1,115 +1,67 @@
-<!DOCTYPE html>
-<html lang="en" x-data="{ tab: 'all' }">
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}{{ user.username }}Profile{% endblock %}
+{% block title %}{{ user.username }} Profile{% endblock %}
 
 {% block content %}
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ user.username }}'s Profile</title>
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-  <main class="max-w-5xl mx-auto mt-8 px-4">
-    
-    <!-- User Info -->
-    <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
-       {% if user.userprofile and user.userprofile.profile_picture %}
-          <img src="{{ user.userprofile.profile_picture.url }}"
-               class="w-24 h-24 rounded-full object-cover border">
-       {% endif %}
-      <div>
-        <h2 class="text-2xl font-bold">{{ user.username }}</h2>
-        <p class="text-gray-600">{{ user.email }}</p>
-        <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
-        <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
-          Edit Profile
-        </a>
-      </div>
-
+<main class="max-w-5xl mx-auto mt-8 px-4">
+  
+  <!-- User Info -->
+  <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
+     {% if user.userprofile and user.userprofile.profile_picture %}
+        <img src="{{ user.userprofile.profile_picture.url }}"
+             class="w-24 h-24 rounded-full object-cover border">
+     {% endif %}
+    <div>
+      <h2 class="text-2xl font-bold">{{ user.username }}</h2>
+      <p class="text-gray-600">{{ user.email }}</p>
+      <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
+      <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
+        Edit Profile
+      </a>
     </div>
+  </div>
 
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-3xl font-bold">คำขอ</h2>
-      <div class="flex space-x-2 ml-auto">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-3xl font-bold">คำขอ</h2>
+    <div class="flex space-x-2 ml-auto">
       <a href="{% url 'my_requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
         ดูคำขอที่ส่งไป
       </a>
       <a href="{% url 'requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
         ดูคำขอที่เข้ามา
       </a>
-      </div>
     </div>
+  </div>
 
-    <!-- Tabs -->
+  <!-- Tabs -->
+  <div x-data="{ tab: 'all' }">
     <div class="flex space-x-4 border-b mb-6">
-      <button @click="tab = 'all'" 
-          :class="tab === 'all' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
+      {% for tab_type in tabs %}
+        <button 
+          @click="tab = '{{ tab_type }}'"
+          :class="tab === '{{ tab_type }}' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'"
           class="pb-2 font-semibold">
-      All
-      </button>
-      <button @click="tab = 'swap'" 
-          :class="tab === 'swap' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-          class="pb-2 font-semibold">
-      Swap
-      </button>
-      <button @click="tab = 'buy_sell'" 
-          :class="tab === 'buy_sell' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-          class="pb-2 font-semibold">
-      Buy/Sell
-      </button>
-      <button @click="tab = 'donation'" 
-          :class="tab === 'donation' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'" 
-          class="pb-2 font-semibold">
-      Donation
-      </button>
+          {{ tab_type|capfirst }}
+        </button>
+      {% endfor %}
     </div>
 
- 
     <h2 class="text-xl font-bold mb-4">โพสต์ของฉัน</h2>
-    <!-- All Posts -->
-    <div x-show="tab === 'all'">
-      {% for post in user.posts.all %}
-      {% include "posts/post_card.html" %}
-      {% empty %}
-      <p>คุณยังไม่ได้สร้างโพสต์</p>
-      {% endfor %}
-    </div>
-    <!-- Swap Posts -->
-    <div x-show="tab === 'swap'">
-      {% for post in user.posts.all %}
-      {% if post.post_type == 'swap' %}
-        {% include "posts/post_card.html" %}
-      {% endif %}
-      {% empty %}
-      <p>ไม่มีโพสต์ประเภท Swap</p>
-      {% endfor %}
-    </div>
-    <!-- Buy/Sell Posts -->
-    <div x-show="tab === 'buy_sell'">
-      {% for post in user.posts.all %}
-      {% if post.post_type == 'buy_sell' %}
-        {% include "posts/post_card.html" %}
-      {% endif %}
-      {% empty %}
-      <p>ไม่มีโพสต์ประเภท Buy/Sell</p>
-      {% endfor %}
-    </div>
-    <!-- Donation Posts -->
-    <div x-show="tab === 'donation'">
-      {% for post in user.posts.all %}
-      {% if post.post_type == 'donation' %}
-        {% include "posts/post_card.html" %}
-      {% endif %}
-      {% empty %}
-      <p>ไม่มีโพสต์ประเภท Donation</p>
-      {% endfor %}
-    </div>
-  </main>
-</body>
-</html>
+    
+    {% for tab_type in tabs %}
+      <div x-show="tab === '{{ tab_type }}'">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {% for post in posts %}
+            {% if tab_type == 'all' or post.post_type == tab_type %}
+              {% include "posts/post_card.html" %}
+            {% endif %}
+          {% empty %}
+            <p>ไม่มีโพสต์ประเภท {{ tab_type|capfirst }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</main>
 {% endblock %}

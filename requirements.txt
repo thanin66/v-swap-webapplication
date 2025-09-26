@@ -9,6 +9,5 @@ Pillow
 django-tailwind>=2.0,<3.0
 django-widget-tweaks>=1.4,<2.0
 django-leaflet>=0.26,<1.0
-djgeojson>=1.0,<2.0
 gunicorn
 

@@ -12,8 +12,13 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserChangeForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ("username", "email", "date_of_birth")  # เพิ่ม profile_image
-
+        fields = ("username", "email", "date_of_birth")
+        widgets = {
+            "username": forms.TextInput(attrs={"class": "w-full p-2 border rounded"}),
+            "email": forms.EmailInput(attrs={"class": "w-full p-2 border rounded"}),
+            "date_of_birth": forms.DateInput(attrs={"type": "date", "class": "w-full p-2 border rounded"}),
+        }
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['date_of_birth'].required = False  # Make date_of_birth optional

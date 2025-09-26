@@ -10,25 +10,35 @@
             </div>
         {% endif %}
     </a>
-    <div class="flex flex-col flex-grow p-6">
+    <div class="flex flex-col flex-grow p-4">
         <div class="flex-grow">
-            <div class="flex items-center text-sm text-gray-500 mb-2">
+            <h3 class="text-xl font-bold leading-tight text-gray-900 dark:text-white mb-2">{{ post.title }}</h3>
+            <p class="text-pretty text-sm text-gray-600 dark:text-gray-400 mb-4">{{ post.description|truncatewords:20 }}</p>
+            <div class="flex items-center text-xl text-gray-500 mb-2">
                 <span class="mr-2">{{ post.get_post_type_display }}</span>
                 <span class="mr-2">•</span>
                 <span>โดย <span class="font-medium text-gray-700 dark:text-gray-300">{{ post.owner.username }}</span></span>
             </div>
-            <h3 class="text-xl font-bold leading-tight text-gray-900 dark:text-white mb-2">{{ post.title }}</h3>
-            <p class="text-pretty text-sm text-gray-600 dark:text-gray-400 mb-4">{{ post.description|truncatewords:20 }}</p>
         </div>
         <div class="flex flex-col space-y-3 mt-auto">
             {% if post.owner == user %}
-                <a href="{% url 'post_edit' post.id %}" class="w-full text-center bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 ease-in-out transform hover:scale-105">
+                <a href="{% url 'post_edit' post.id %}" class="w-full text-center bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition duration-200 ease-in-out transform hover:scale-105">
                     แก้ไขโพสต์
                 </a>
             {% else %}
-                <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition duration-200 ease-in-out transform hover:scale-105">
-                    ส่งคำขอ
-                </a>
+                {% if post.get_post_type_display == "แลกของ" or post.get_post_type_display == "swap" %}
+                    <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-900 transition duration-200 ease-in-out transform hover:scale-105">
+                        ส่งคำขอ
+                    </a>
+                {% elif post.get_post_type_display == "ขาย/รับซื้อ" or post.get_post_type_display == "buy_sell" %}
+                    <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-yellow-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-yellow-900 transition duration-200 ease-in-out transform hover:scale-105">
+                        ส่งคำขอ
+                    </a>
+                {% elif post.get_post_type_display == "ให้ฟรี" or post.get_post_type_display == "donate" %}
+                    <a href="{% url 'send_request' post.id %}" class="w-full text-center bg-purple-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-900 transition duration-200 ease-in-out transform hover:scale-105">
+                        ส่งคำขอ
+                    </a>
+                {% endif %}
             {% endif %}
             <a href="{% url 'post_detail' post.id %}" class="w-full text-center text-blue-600 border border-blue-600 py-3 px-6 rounded-lg font-semibold hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 ease-in-out transform hover:scale-105">
                 ดูรายละเอียด

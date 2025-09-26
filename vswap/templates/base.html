@@ -1,42 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static tailwind_tags %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}VSwap{% endblock %}</title>
+    <title>VSwap</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Leaflet CSS and JS for maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Alpine.js for interactivity -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/htmx.org"></script>
+
     {% block extra_head %}{% endblock %}
+    {% tailwind_css %}
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-800">
-    <nav class="bg-white shadow p-4 flex justify-between items-center">
-        <a href="{% url 'home' %}">Home</a>
-        <div class="flex items-center space-x-4">
-            <a href="{% url 'post_list' %}">Posts</a>
-            <a href="{% url 'post_type_select' %}">Create Post</a>
-        </div>
-        <div class="flex items-center space-x-4">
-            {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="text-blue-600 hover:underline">Profile</a>
-                {% if request.resolver_match.url_name == 'profile' %}
-                    <a href="{% url 'logout' %}" class="text-red-600 hover:underline">Logout</a>
-                {% endif %}
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'signup' %}">Sign Up</a>
-            {% endif %}
-        </div>
-    </nav>
+
+<body class="bg-white-500 m-8">
+    {% include 'navbar.html' %}
+    {% block content %}
+    {% endblock %}
+
 </body>
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    {% block extra_scripts %}{% endblock %}
-
 
 </html>

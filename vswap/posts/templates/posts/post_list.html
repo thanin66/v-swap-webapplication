@@ -1,39 +1,60 @@
-<!DOCTYPE html>
-<html lang="en" x-data>
 {% extends "base.html" %}
 
 {% block title %}Post List{% endblock %}
 
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post list</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-    <main class="flex flex-col items-center justify-center mt-20">
-        <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
-            <h2 class="text-2xl font-bold mb-4">Available Posts</h2>
-            <p class="mb-4">Here are the posts available for you:</p>
-            <div class="space-y-4">
-                {% for post in posts %}
-                    <div class="bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition">
-                        <h3 class="text-xl font-semibold">{{ post.title }}</h3>
-                        <p class="text-gray-600">{{ post.description }}</p>
-                        <a href="{% url 'post_detail' post.id %}" class="text-blue-600 hover:underline">View Details</a>
-                    </div>
-                {% empty %}
-                    <p class="text-gray-500">No posts available at the moment.</p>
-                {% endfor %}
-            </div>
-                <a href="{% url 'post_type_select' %}" 
-                    class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-                    Create New Post
-                </a>
+<body class="bg-gray-100 min-h-screen p-6" x-data="{ open: false }" @open-post-modal.window="open = true">
+    <main class="max-w-7xl mx-auto py-8">
+        
+        <h2 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">
+            <div class="flex justify-between items-center">
+                โพสต์ทั้งหมด
+                <button 
+                @click="open = true" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                + สร้างโพสต์
+                </button>
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for post in posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <div class="col-span-full text-center text-gray-500">
+                    <p>ยังไม่มีโพสต์ในขณะนี้</p>
+                </div>
+            {% endfor %}
         </div>
     </main>
 </body>
-</html>
+
+<!-- Modal -->
+<div 
+    x-show="open"
+    class="fixed inset-0 flex items-center justify-center bg-black/50"
+    style="display: none;"
+>
+  <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">เลือกประเภทโพสต์</h2>
+      <div class="flex gap-3"> 
+        <button 
+            @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
+            class="px-4 py-2 bg-green-500 text-white rounded-lg">Swap</button>
+        <button 
+            @click="window.location.href='{% url 'post_create' post_type='buy_sell' %}'" 
+            class="px-4 py-2 bg-yellow-500 text-white rounded-lg">Buy & Sell</button>
+        <button 
+            @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
+            class="px-4 py-2 bg-purple-500 text-white rounded-lg">Donation</button>
+      </div>
+
+      <div class="mt-6 text-right">
+        <button 
+            @click="open=false" 
+            class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">
+            ปิด
+        </button>
+      </div>
+  </div>
+</div>
+
 {% endblock %}
