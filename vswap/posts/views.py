@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Post, Swap, BuySell, Donation
@@ -91,3 +92,12 @@ def send_request(request, pk):
         # Logic to handle sending request (e.g., sending email or notification)
         return redirect('post_detail', pk=post.pk)
     return render(request, 'posts/send_request.html', {'post': post})
+
+def map_view(request):
+    # ดึงโพสต์ทั้งหมดที่มี lat/lng
+    posts_qs = Post.objects.exclude(leaflet_lat__isnull=True, leaflet_lng__isnull=True)
+    
+    # แปลงเป็น list ของ dict
+    posts = list(posts_qs.values('id', 'title', 'description', 'leaflet_lat', 'leaflet_lng'))
+    
+    return render(request, 'posts/map.html', {'posts': posts})

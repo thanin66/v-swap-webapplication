@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Leaflet Map{% endblock %}
+
+{% block content %}
+
+<div x-data="mapSearch()" x-init="init()" class="space-y-4 p-4">
+
+    <!-- ช่องค้นหา + dropdown -->
+    <div class="relative">
+        <div class="flex space-x-2">
+            <input 
+                type="text" 
+                x-model="query"
+                @input.debounce.300="search()" 
+                placeholder="ค้นหาโพสต์..."
+                class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300">
+            
+            <button @click="selectFirst()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                ค้นหา
+            </button>
+        </div>
+
+        <!-- dropdown ผลลัพธ์ -->
+        <ul x-show="dropdown.length > 0" 
+            class="absolute z-50 w-full bg-white border rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
+            <template x-for="(item, index) in dropdown" :key="index">
+                <li @click="goToResult(item)" 
+                    class="px-3 py-2 hover:bg-blue-100 cursor-pointer">
+                    <span x-text="item.name"></span>
+                    <span class="text-gray-500 text-sm"> (โพสต์)</span>
+                </li>
+            </template>
+        </ul>
+    </div>
+
+    <!-- แผนที่ -->
+    <div id="map" style="height: 600px;"></div>
+</div>
+
+<!-- posts JSON -->
+{{ posts|json_script:"posts-data" }}
+
+<script>
+function mapSearch() {
+    return {
+        map: null,
+        markers: [],
+        allPosts: JSON.parse(document.getElementById('posts-data').textContent),
+        query: '',
+        dropdown: [],
+
+        init() {
+            // สร้าง map
+            this.map = L.map('map').setView([13.736717,100.523186],6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 13,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(this.map);
+
+            // วาง marker ทั้งหมดตอนเริ่ม
+            this.renderMarkers(this.allPosts);
+        },
+
+        renderMarkers(posts) {
+            // ลบ marker เก่า
+            this.markers.forEach(m => this.map.removeLayer(m));
+            this.markers = [];
+
+            posts.forEach(p => {
+                if(p.leaflet_lat && p.leaflet_lng){
+                    const marker = L.marker([p.leaflet_lat, p.leaflet_lng])
+                        .bindPopup('<b>' + p.title + '</b><br>' + p.description);
+                    marker.addTo(this.map);
+                    this.markers.push(marker);
+                }
+            });
+
+            if(this.markers.length > 0){
+                const group = L.featureGroup(this.markers);
+                this.map.fitBounds(group.getBounds().pad(0.2));
+            }
+        },
+
+        search() {
+            this.dropdown = [];
+            const q = this.query.trim().toLowerCase();
+            if(!q) return;
+
+            // ค้นหาโพสต์
+            const postsResults = this.allPosts.filter(p => p.title.toLowerCase().includes(q));
+            postsResults.forEach(p => this.dropdown.push({name: p.title, data: p}));
+        },
+
+        goToResult(item) {
+            this.dropdown = [];
+            this.query = item.name;
+
+            // ลบ marker เก่า
+            this.markers.forEach(m => this.map.removeLayer(m));
+            this.markers = [];
+
+            const p = item.data;
+            const marker = L.marker([p.leaflet_lat, p.leaflet_lng])
+                .addTo(this.map)
+                .bindPopup('<b>' + p.title + '</b><br>' + p.description)
+                .openPopup();
+            this.markers.push(marker);
+            this.map.setView([p.leaflet_lat, p.leaflet_lng],15);
+        },
+
+        selectFirst() {
+            if(this.dropdown.length > 0) this.goToResult(this.dropdown[0]);
+        }
+    }
+}
+</script>
+
+{% endblock %}

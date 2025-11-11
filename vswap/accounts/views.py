@@ -105,6 +105,3 @@ def home_view(request):
     posts = Post.objects.all().order_by('-created_at')
     return render(request, "accounts/home.html", {"posts": posts})
 
-#map view
-def map_view(request):
-    return render(request, "accounts/leafletmap.html")

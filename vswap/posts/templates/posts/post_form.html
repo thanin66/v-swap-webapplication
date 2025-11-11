@@ -1,41 +1,81 @@
-
 {% extends "base.html" %}
 
 {% block title %}Post Form{% endblock %}
 
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post detail</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
 <body class="bg-gray-100 min-h-screen p-6">
-    <div class="container mx-auto max-w-lg p-6 my-8 bg-white rounded-lg shadow-xl border border-gray-200">
+
+    <div class="container mx-auto max-w-lg p-6 my-8 bg-white rounded-lg shadow-xl border border-gray-200"
+         x-data="postForm()" x-init="init()">
+
         <h1 class="text-3xl font-extrabold text-gray-900 mb-6">
-            {% if post %}
-                Edit Post
-            {% else %}
-                Create New Post
-            {% endif %}
+            {% if post %} Edit Post {% else %} Create New Post {% endif %}
         </h1>
+
         <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             {{ form.as_p }}
-            <div class="flex justify-between">
+
+            <!-- Hidden inputs สำหรับส่งค่าแผนที่ ใช้ x-model แทน :value -->
+            <input type="hidden" name="leaflet_lat" x-model="lat">
+            <input type="hidden" name="leaflet_lng" x-model="lng">
+
+            <!-- แผนที่ -->
+            <div id="map" class="mt-4" style="height:400px; border-radius:8px;"></div>
+
+            <p class="text-sm text-gray-500 mt-2">
+                เลือกตำแหน่ง: <span x-text="lat"></span>, <span x-text="lng"></span>
+            </p>
+
+            <div class="flex justify-between mt-6">
                 <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-                    {% if post %}
-                        Update Post
-                    {% else %}
-                        Create Post
-                    {% endif %}
+                    {% if post %} Update Post {% else %} Create Post {% endif %}
                 </button>
                 <a href="{% url 'post_list' %}" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">Cancel</a>
             </div>
         </form>
     </div>
 
+    <script>
+    function postForm() {
+        return {
+            lat: {{ post.leaflet_lat|default:0 }},
+            lng: {{ post.leaflet_lng|default:0 }},
+            _marker: null,
+            init() {
+                let defaultLat = this.lat || 13.736717;
+                let defaultLng = this.lng || 100.523186;
+
+                var map = L.map('map').setView([defaultLat, defaultLng], 6);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                if (this.lat && this.lng) {
+                    this._marker = L.marker([this.lat, this.lng]).addTo(map);
+                }
+
+                map.on('click', (e) => this.setMarker(e.latlng, map));
+
+                // Search box
+                L.Control.geocoder({ defaultMarkGeocode: false })
+                    .on('markgeocode', (e) => {
+                        var latlng = e.geocode.center;
+                        map.setView(latlng, 15);
+                        this.setMarker(latlng, map);
+                    })
+                    .addTo(map);
+            },
+            setMarker(latlng, map) {
+                this.lat = latlng.lat.toFixed(6);
+                this.lng = latlng.lng.toFixed(6);
+
+                if (this._marker) map.removeLayer(this._marker);
+                this._marker = L.marker([this.lat, this.lng]).addTo(map);
+            }
+        }
+    }
+    </script>
 </body>
-</html>
 {% endblock %}

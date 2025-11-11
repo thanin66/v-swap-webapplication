@@ -1,48 +1,59 @@
-<!DOCTYPE html>
-<html lang="en" x-data>
 {% extends "base.html" %}
 
 {% block title %}Post Details{% endblock %}
 
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post detail</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
 
-    <main class="max-w-lg mx-auto mt-10 bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-bold mb-6">{{ post.title }}</h2>
-        <p class="mb-4">{{ post.description }}</p>
-        <p class="text-gray-600 mb-4">Posted by: {{ post.owner.username }}</p>
-        {% if post.image %}
-            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded mb-4">
+<main class="max-w-lg mx-auto mt-10 bg-white rounded-lg shadow p-6">
+    <h2 class="text-2xl font-bold mb-6">{{ post.title }}</h2>
+    <p class="mb-4">{{ post.description }}</p>
+    <p class="text-gray-600 mb-4">Posted by: {{ post.owner.username }}</p>
+    
+    {% if post.image %}
+        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded mb-4">
+    {% endif %}
+    
+    <div class="space-y-4">
+        {% if post.post_type == 'swap' %}
+            <p><strong>Swap Item Description:</strong> {{ post.swap_item_description }}</p>
+        {% elif post.post_type == 'buy_sell' %}
+            <p><strong>Price:</strong> {{ post.price }}</p>
+        {% elif post.post_type == 'donation' %}
+            <p><strong>Donation Details:</strong> {{ post.condition }}</p>
         {% endif %}
-        
-        <div class="space-y-4">
-            {% if post.post_type == 'swap' %}
-                <p><strong>Swap Item Description:</strong> {{ post.swap_item_description }}</p>
-            {% elif post.post_type == 'buy_sell' %}
-                <p><strong>Price:</strong> {{ post.price }} {{ post.currency }}</p>
-            {% elif post.post_type == 'donation' %}
-                <p><strong>Donation Details:</strong> {{ post.donation_details }}</p>
-            {% endif %}
-        </div>
+    </div>
 
-        {% if post.owner == user %}
-        <div class="mt-6">
-            <a href="{% url 'post_edit' post.id %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Edit Post</a>
-            <form method="post" action="{% url 'post_delete' post.id %}" class="inline-block ml-2">
+    {% if post.leaflet_lat and post.leaflet_lng %}
+        <div id="map" class="mt-6" style="height: 400px; border-radius: 8px;"></div>
+    {% endif %}
+
+    {% if post.owner == user %}
+    <div class="mt-6">
+        <a href="{% url 'post_edit' post.id %}" 
+           class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Edit Post</a>
+        <form method="post" action="{% url 'post_delete' post.id %}" class="inline-block ml-2">
             {% csrf_token %}
-            <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
-            </form>
-        </div>
-        {% endif %}
-            </form>
-        </div>
-    </main>
-</body>
-</html>
+            <button type="submit" 
+                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
+        </form>
+    </div>
+    {% endif %}
+</main>
+
+{% if post.leaflet_lat and post.leaflet_lng %}
+<script>
+    var map = L.map('map').setView([{{ post.leaflet_lat }}, {{ post.leaflet_lng }}], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([{{ post.leaflet_lat }}, {{ post.leaflet_lng }}])
+        .addTo(map)
+        .bindPopup("<b>{{ post.title }}</b><br>{{ post.description|truncatechars:50 }}")
+        .openPopup();
+</script>
+{% endif %}
+
 {% endblock %}
