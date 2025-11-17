@@ -13,6 +13,7 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     post_type = models.CharField(max_length=20, choices=POST_TYPES)
+    status = models.CharField(max_length=50, default='available')
     created_at = models.DateTimeField(auto_now_add=True)
     leaflet_lat = models.FloatField(blank=True, null=True)
     leaflet_lng = models.FloatField(blank=True, null=True)

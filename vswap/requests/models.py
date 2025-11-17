@@ -20,12 +20,27 @@ class Request(models.Model):
         choices=[('pending', 'รอดำเนินการ'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
         default='pending'
     )
+    user1_status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'รอดำเนินการ'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
+        default='pending'
+    )
+    user2_status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'รอดำเนินการ'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
+        default='pending'
+    ) 
     requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='requests_made')
     
     # New fields for different request types
     offered_product = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True, related_name='offered_for_trade')
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     reason = models.TextField(blank=True)
+
+    position_lat = models.FloatField(null=True, blank=True)
+    position_lng = models.FloatField(null=True, blank=True)
+    user1_position_confirmed = models.BooleanField(default=False)
+    user2_position_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Request by {self.requester} for {self.post} - Status: {self.status}"

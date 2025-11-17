@@ -1,0 +1,156 @@
+<!-- navbar.html -->
+<nav class="bg-blue-700 text-white shadow-lg w-full " 
+     x-data="{ open: false, formUrl: '' }">
+    <div class="flex justify-between items-center h-16">
+      
+      <!-- Test โลโก้ -->
+      <div class="flex items-center space-x-2">
+        <a href="{% url 'home' %}" class="text-2xl font-bold">VSwap</a>
+      </div>
+
+      <!-- เมนู -->
+      <div class="hidden md:flex space-x-6">
+        <a href="{% url 'home' %}" 
+           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            หน้าแรก
+        </a>
+        <a href="{% url 'post_list' %}" 
+           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            โพสต์ทั้งหมด
+        </a>
+        <a href="{% url 'map' %}" 
+           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            แผนที่
+        </a>
+        <div x-data="searchBar()" class="relative w-72">
+          <input
+            type="text"
+            x-model.debounce.300ms="query"
+            @input="search"
+            placeholder="ค้นหาโพสต์..."
+            class="w-full px-3 py-2 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <!-- Dropdown ผลลัพธ์ -->
+          <div 
+            x-show="open"
+            x-transition
+            class="absolute left-0 w-full mt-1 bg-white text-black rounded-lg shadow-lg max-h-72 overflow-auto z-50"
+          >
+            <template x-for="result in results" :key="result.id">
+              <a :href="result.url" 
+                class="flex items-center px-3 py-2 hover:bg-blue-50 border-b last:border-none">
+                
+                <!-- รูป thumbnail -->
+                <img 
+                  :src="result.image || '/static/images/default-thumb.jpg'" 
+                  alt="thumbnail"
+                  class="w-12 h-12 object-cover rounded mr-3"
+                />
+
+                <!-- ข้อมูลโพสต์ -->
+                <div>
+                  <div class="font-semibold text-gray-800" x-text="result.title"></div>
+                  <div class="text-xs text-gray-500" x-text="result.type"></div>
+                </div>
+              </a>
+            </template>
+
+            <div x-show="!loading && results.length === 0" class="px-3 py-2 text-gray-500">
+              ไม่พบผลลัพธ์
+            </div>
+          </div>
+
+          <!-- Loading spinner -->
+          <div x-show="loading" class="absolute right-3 top-2 text-gray-400">
+            <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+          </div>
+        
+        </div>
+
+        <script>
+        function searchBar() {
+          return {
+            query: '',
+            results: [],
+            open: false,
+            loading: false,
+            async search() {
+              if (this.query.length < 2) {
+                this.results = [];
+                this.open = false;
+                return;
+              }
+              this.loading = true;
+              this.open = true;
+
+              try {
+                const res = await fetch(`/posts/search/?q=${encodeURIComponent(this.query)}`);
+                if (!res.ok) throw new Error("Network error");
+                this.results = await res.json();
+              } catch (e) {
+                console.error(e);
+                this.results = [];
+              } finally {
+                this.loading = false;
+              }
+            }
+          };
+        }
+        </script>
+
+        <button @click="notReadyModal = true" 
+                class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            แชท
+        </button>
+
+        <a href="{% url 'request_page' %}" 
+           class="px-6 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            กล่องคำขอ
+        </a>
+
+      </div>
+
+      <!-- ส่วน Login/Logout -->
+      <div class="hidden md:flex items-center space-x-4">
+        {% if user.is_authenticated %}
+          <a class="text-white font-semibold mr-4">
+            สวัสดี {{ user.username }}
+          </a>
+          <a href="{% url 'profile' %}" 
+             class="button px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            โปรไฟล์
+          </a>
+          {% if request.resolver_match.url_name == "profile" %}
+          <a href="{% url 'logout' %}" 
+             class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-800">
+             ออกจากระบบ
+          </a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'login' %}" 
+             class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
+            ล็อกอิน
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Hamburger -->
+      <div class="md:hidden">
+        <button id="menu-btn" class="focus:outline-none">
+          <!-- ไอคอน -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
+               viewBox="0 0 24 24" stroke-width="1.5" 
+               stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" 
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+
+</nav>

@@ -1,41 +1,83 @@
 {% extends "base.html" %}
 
-{% block title %}Leaflet Map{% endblock %}
+{% block title %}แผนที่โพสต์ | VSwap{% endblock %}
 
 {% block content %}
+<div class="bg-gray-100 min-h-screen p-6" x-data="mapSearch()" x-init="init()">
 
-<div x-data="mapSearch()" x-init="init()" class="space-y-4 p-4">
-
-    <!-- ช่องค้นหา + dropdown -->
-    <div class="relative">
-        <div class="flex space-x-2">
-            <input 
-                type="text" 
-                x-model="query"
-                @input.debounce.300="search()" 
-                placeholder="ค้นหาโพสต์..."
-                class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300">
-            
-            <button @click="selectFirst()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                ค้นหา
-            </button>
+    <section class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div>
+            <h2 class="text-4xl font-extrabold text-gray-800 mb-2 md:mb-0">
+                แผนที่โพสต์
+            </h2>
+            <p class="text-gray-500 text-sm">มี <span x-text="filteredPosts.length"></span> โพสต์</p>
         </div>
 
-        <!-- dropdown ผลลัพธ์ -->
-        <ul x-show="dropdown.length > 0" 
-            class="absolute z-50 w-full bg-white border rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
-            <template x-for="(item, index) in dropdown" :key="index">
-                <li @click="goToResult(item)" 
-                    class="px-3 py-2 hover:bg-blue-100 cursor-pointer">
-                    <span x-text="item.name"></span>
-                    <span class="text-gray-500 text-sm"> (โพสต์)</span>
-                </li>
-            </template>
-        </ul>
-    </div>
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-2 md:mt-0 w-full md:w-auto">
 
-    <!-- แผนที่ -->
-    <div id="map" style="height: 600px;"></div>
+            <!-- Search + Dropdown -->
+            <div class="relative w-full max-w-md">
+                <input type="text" 
+                       x-model.debounce.300ms="query" 
+                       @input="updateDropdown()" 
+                       placeholder="ค้นหาโพสต์..."
+                       class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300">
+
+                <ul x-cloak x-show="dropdown.length > 0" x-transition
+                    class="absolute z-[1000] w-full bg-white border rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    <template x-for="item in dropdown" :key="item.id">
+                        <li @click="selectItem(item)" class="px-3 py-2 hover:bg-blue-100 cursor-pointer flex justify-between">
+                            <span x-text="item.title"></span>
+                            <span class="text-gray-500 text-sm" x-text="item.type"></span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+
+            <button @click="searchFirst()" 
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex-shrink-0 ">
+                ค้นหา
+            </button>
+
+            <!-- Filter by Type -->
+            <select x-model="filterType" @change="applyFilter()" 
+                class="px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 flex-shrink-0 ">
+                <option value="">ทุกประเภท</option>
+                <option value="swap">แลกของ</option>
+                <option value="buy_sell">ขาย/รับซื้อ</option>
+                <option value="donate">ให้ฟรี</option>
+            </select>
+
+            <!-- Create Post -->
+            <button @click="goCreatePost()" 
+                class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex-shrink-0 ">
+                สร้างโพสต์ใหม่
+            </button>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="max-w-7xl mx-auto relative">
+        <div id="map" class="w-full h-96 rounded-lg shadow-lg"></div>
+
+        <!-- Legend Panel -->
+        <div class="absolute top-4 right-4 bg-white p-4 rounded-lg shadow-lg border w-48 space-y-2">
+            <h3 class="font-bold">Legend</h3>
+            <div class="flex items-center space-x-2">
+                <span class="w-4 h-4 bg-green-500 inline-block rounded-full"></span>
+                <span>แลกของ (<span x-text="countByType('swap')"></span>)</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="w-4 h-4 bg-yellow-500 inline-block rounded-full"></span>
+                <span>ขาย/รับซื้อ (<span x-text="countByType('buy_sell')"></span>)</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="w-4 h-4 bg-purple-500 inline-block rounded-full"></span>
+                <span>ให้ฟรี (<span x-text="countByType('donate')"></span>)</span>
+            </div>
+        </div>
+    </section>
+
 </div>
 
 <!-- posts JSON -->
@@ -47,32 +89,45 @@ function mapSearch() {
         map: null,
         markers: [],
         allPosts: JSON.parse(document.getElementById('posts-data').textContent),
+        filteredPosts: [],
         query: '',
         dropdown: [],
+        filterType: '',
 
         init() {
-            // สร้าง map
-            this.map = L.map('map').setView([13.736717,100.523186],6);
-
+            this.map = L.map('map', {center:[13.736717,100.523186], zoom:6, maxZoom:19});
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 13,
+                maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(this.map);
 
-            // วาง marker ทั้งหมดตอนเริ่ม
-            this.renderMarkers(this.allPosts);
+            this.filteredPosts = [...this.allPosts];
+            this.renderMarkers(this.filteredPosts);
         },
 
         renderMarkers(posts) {
-            // ลบ marker เก่า
             this.markers.forEach(m => this.map.removeLayer(m));
             this.markers = [];
 
             posts.forEach(p => {
                 if(p.leaflet_lat && p.leaflet_lng){
-                    const marker = L.marker([p.leaflet_lat, p.leaflet_lng])
-                        .bindPopup('<b>' + p.title + '</b><br>' + p.description);
-                    marker.addTo(this.map);
+                    let color = p.post_type === 'swap' ? 'green' :
+                                p.post_type === 'buy_sell' ? 'yellow' : 'purple';
+
+                    const marker = L.circleMarker([p.leaflet_lat, p.leaflet_lng], {
+                        color: color,
+                        radius: 8,
+                        fillOpacity: 0.8
+                    }).addTo(this.map)
+                    .bindPopup(`
+                        <div class="space-y-1">
+                            <b>${p.title}</b><br>
+                            ${p.description.substring(0, 60)}...<br>
+                            ${p.image ? `<img src="/media/${p.image}" class="w-24 h-24 object-cover rounded"/>` : ''}
+                            <br>
+                            <a href="/posts/post/${p.id}/" class="text-blue-600 underline">ไปหน้าสินค้า</a>
+                        </div>
+                    `);
                     this.markers.push(marker);
                 }
             });
@@ -83,38 +138,69 @@ function mapSearch() {
             }
         },
 
-        search() {
-            this.dropdown = [];
+        updateDropdown() {
             const q = this.query.trim().toLowerCase();
-            if(!q) return;
+            if(!q) {
+                this.dropdown = [];
+                return;
+            }
 
-            // ค้นหาโพสต์
-            const postsResults = this.allPosts.filter(p => p.title.toLowerCase().includes(q));
-            postsResults.forEach(p => this.dropdown.push({name: p.title, data: p}));
+            this.dropdown = this.filteredPosts
+                .filter(p => 
+                    p.title.toLowerCase().includes(q) || 
+                    p.description.toLowerCase().includes(q)
+                )
+                .map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    type: p.post_type,
+                    leaflet_lat: p.leaflet_lat,
+                    leaflet_lng: p.leaflet_lng
+                }));
         },
 
-        goToResult(item) {
+        selectItem(item) {
+            this.query = item.title;
             this.dropdown = [];
-            this.query = item.name;
-
-            // ลบ marker เก่า
             this.markers.forEach(m => this.map.removeLayer(m));
             this.markers = [];
 
-            const p = item.data;
-            const marker = L.marker([p.leaflet_lat, p.leaflet_lng])
-                .addTo(this.map)
-                .bindPopup('<b>' + p.title + '</b><br>' + p.description)
-                .openPopup();
+            const color = item.type === 'swap' ? 'green' : item.type === 'buy_sell' ? 'yellow' : 'purple';
+
+            const marker = L.circleMarker([item.leaflet_lat, item.leaflet_lng], {
+                color: color,
+                radius: 8,
+                fillOpacity: 0.8
+            }).addTo(this.map)
+            .bindPopup(`<b>${item.title}</b><br>${item.type}<br><a href="/posts/post/${item.id}/" class="text-blue-600 underline">ไปหน้าสินค้า</a>`);
+
             this.markers.push(marker);
-            this.map.setView([p.leaflet_lat, p.leaflet_lng],15);
+            this.map.setView([item.leaflet_lat, item.leaflet_lng], 15);
         },
 
-        selectFirst() {
-            if(this.dropdown.length > 0) this.goToResult(this.dropdown[0]);
-        }
+        searchFirst() {
+            if(this.dropdown.length > 0) {
+                this.selectItem(this.dropdown[0]);
+            }
+        },
+
+        applyFilter() {
+            this.filteredPosts = this.filterType ? 
+                this.allPosts.filter(p => p.post_type === this.filterType) :
+                [...this.allPosts];
+
+            this.renderMarkers(this.filteredPosts);
+        },
+
+        countByType(type) {
+            return this.filteredPosts.filter(p => p.post_type === type).length;
+        },
+
+        goCreatePost() {
+            const type = this.filterType || 'swap';
+            window.location.href = `/posts/create/${type}/`;
+        },
     }
 }
 </script>
-
 {% endblock %}

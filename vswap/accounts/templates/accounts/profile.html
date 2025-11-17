@@ -3,38 +3,36 @@
 {% block title %}{{ user.username }} Profile{% endblock %}
 
 {% block content %}
-<main class="max-w-5xl mx-auto mt-8 px-4">
-  
-  <!-- User Info -->
-  <div class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
-     {% if user.userprofile and user.userprofile.profile_picture %}
+<main class="max-w-7xl mx-auto mt-8 px-6">
+
+  <!-- User Info Section -->
+  <section class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
+    {% if user.userprofile and user.userprofile.profile_picture %}
         <img src="{{ user.userprofile.profile_picture.url }}"
-             class="w-24 h-24 rounded-full object-cover border">
-     {% endif %}
+            class="w-24 h-24 rounded-full object-cover border">
+    {% endif %}
     <div>
-      <h2 class="text-2xl font-bold">{{ user.username }}</h2>
-      <p class="text-gray-600">{{ user.email }}</p>
-      <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
-      <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
-        Edit Profile
+        <h2 class="text-2xl font-bold">{{ user.username }}</h2>
+        <p class="text-gray-600">{{ user.email }}</p>
+        <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
+        <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
+          Edit Profile
+        </a>
+    </div>
+  </section>
+
+  <!-- Requests Section -->
+  <section class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-3xl font-bold">คำขอ</h2>
+      <a href="{% url 'request_page' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+        ดูคำขอ
       </a>
     </div>
-  </div>
+  </section>
 
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-3xl font-bold">คำขอ</h2>
-    <div class="flex space-x-2 ml-auto">
-      <a href="{% url 'my_requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-        ดูคำขอที่ส่งไป
-      </a>
-      <a href="{% url 'requests' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-        ดูคำขอที่เข้ามา
-      </a>
-    </div>
-  </div>
-
-  <!-- Tabs -->
-  <div x-data="{ tab: 'all' }">
+  <!-- Posts Section -->
+  <section x-data="{ tab: 'all' }" class="mb-8">
     <div class="flex space-x-4 border-b mb-6">
       {% for tab_type in tabs %}
         <button 
@@ -46,8 +44,6 @@
       {% endfor %}
     </div>
 
-    <h2 class="text-xl font-bold mb-4">โพสต์ของฉัน</h2>
-    
     {% for tab_type in tabs %}
       <div x-show="tab === '{{ tab_type }}'">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -61,7 +57,8 @@
         </div>
       </div>
     {% endfor %}
-  </div>
-
+  </section>
+  
 </main>
+
 {% endblock %}

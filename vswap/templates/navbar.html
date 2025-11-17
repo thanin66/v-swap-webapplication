@@ -1,68 +1,90 @@
-<!-- navbar.html -->
-<nav class="bg-blue-700 text-white shadow-lg" 
-     x-data="{ open: false, formUrl: '' }">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center h-16">
-      
-      <!-- Test โลโก้ -->
-      <div class="flex items-center space-x-2">
-        <a href="{% url 'home' %}" class="text-2xl font-bold">VSwap</a>
-      </div>
+<nav class="bg-blue-700 text-white shadow-lg w-full" x-data="{ mobileOpen: false }">
 
-      <!-- เมนู -->
-      <div class="hidden md:flex space-x-6">
-        <a href="{% url 'home' %}" 
-           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
-            หน้าแรก
-        </a>
-        <a href="{% url 'post_list' %}" 
-           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
-            โพสต์ทั้งหมด
-        </a>
-        <a href="{% url 'map' %}" 
-           class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
-            แผนที่
-        </a>
-      </div>
+    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
 
-      <!-- ส่วน Login/Logout -->
-      <div class="hidden md:flex items-center space-x-4">
-        {% if user.is_authenticated %}
-          <a class="text-white font-semibold mr-4">
-            สวัสดี {{ user.username }}
-          </a>
-          <a href="{% url 'profile' %}" 
-             class="button px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
-            โปรไฟล์
-          </a>
-          {% if request.resolver_match.url_name == "profile" %}
-          <a href="{% url 'logout' %}" 
-             class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-800">
-             ออกจากระบบ
-          </a>
-          {% endif %}
-        {% else %}
-          <a href="{% url 'login' %}" 
-             class="px-3 py-1 bg-white text-blue-600 rounded-lg hover:bg-gray-100">
-            ล็อกอิน
-          </a>
-        {% endif %}
-      </div>
+        <!-- Logo -->
+        <a href="{% url 'home' %}" class="text-2xl font-bold tracking-wide">VSwap</a>
 
-      <!-- Hamburger -->
-      <div class="md:hidden">
-        <button id="menu-btn" class="focus:outline-none">
-          <!-- ไอคอน -->
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
-               viewBox="0 0 24 24" stroke-width="1.5" 
-               stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" 
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center space-x-6">
+
+            <a href="{% url 'home' %}" class="nav-btn">หน้าแรก</a>
+            <a href="{% url 'post_list' %}" class="nav-btn">โพสต์ทั้งหมด</a>
+            <a href="{% url 'map' %}" class="nav-btn">แผนที่</a>
+
+            <!-- Search -->
+            <div x-data="{ query: '', results: [], searchOpen: false, loading: false }" class="relative w-64">
+                <input 
+                    x-model.debounce.300ms="query"
+                    @input="searchOpen = query.length >= 2"
+                    type="text"
+                    placeholder="ค้นหาโพสต์..."
+                    class="w-full px-3 py-2 rounded-lg text-black focus:ring-2 focus:ring-blue-400"
+                />
+
+                <!-- Dropdown -->
+                <div x-show="searchOpen" x-transition
+                     class="absolute left-0 w-full bg-white text-black rounded-lg shadow-lg mt-1 z-50 max-h-72 overflow-auto">
+
+                    <template x-for="result in results" :key="result.id">
+                        <a :href="result.url" 
+                           class="flex items-center px-3 py-2 hover:bg-blue-50 border-b last:border-none">
+                            <img :src="result.image" class="w-12 h-12 object-cover rounded mr-3">
+                            <div>
+                                <div class="font-semibold" x-text="result.title"></div>
+                                <div class="text-xs text-gray-500" x-text="result.type"></div>
+                            </div>
+                        </a>
+                    </template>
+
+                    <div x-show="!loading && results.length === 0" 
+                         class="px-3 py-2 text-gray-500">
+                         ไม่พบผลลัพธ์
+                    </div>
+                </div>
+            </div>
+
+            <button @click="notReadyModal = true" class="nav-btn">แชท</button>
+            <a href="{% url 'request_page' %}" class="nav-btn">กล่องคำขอ</a>
+        </div>
+
+        <!-- Desktop Profile -->
+        <div class="hidden md:flex items-center space-x-4">
+            {% if user.is_authenticated %}
+                <span class="text-white font-semibold">สวัสดี {{ user.username }}</span>
+                <a href="{% url 'profile' %}" class="nav-btn">โปรไฟล์</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-btn">ล็อกอิน</a>
+            {% endif %}
+            {% if request.resolver_match.url_name == "profile" %}
+                <a href="{% url 'logout' %}" class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-700">ออกจากระบบ</a>
+            {% endif %}
+        </div>
+
+        <!-- Hamburger (Mobile) -->
+        <button class="md:hidden focus:outline-none" @click="mobileOpen = !mobileOpen">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
         </button>
-      </div>
-    </div>
-  </div>
 
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="mobileOpen" x-transition class="md:hidden bg-blue-600 text-white px-4 pb-4 space-y-3">
+        <a href="{% url 'home' %}" class="mobile-btn">หน้าแรก</a>
+        <a href="{% url 'post_list' %}" class="mobile-btn">โพสต์ทั้งหมด</a>
+        <a href="{% url 'map' %}" class="mobile-btn">แผนที่</a>
+        <a href="{% url 'request_page' %}" class="mobile-btn">กล่องคำขอ</a>
+
+        {% if user.is_authenticated %}
+            <span class="mobile-btn">สวัสดี {{ user.username }}</span>
+            <a href="{% url 'profile' %}" class="mobile-btn">โปรไฟล์</a>
+            <a href="{% url 'logout' %}" class="mobile-btn text-red-300">ออกจากระบบ</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="mobile-btn">ล็อกอิน</a>
+        {% endif %}
+    </div>
 
 </nav>

@@ -1,43 +1,51 @@
 {% extends "base.html" %}
 
-{% block title %}Post Details{% endblock %}
+{% block title %}{{ post.title }} | VSwap{% endblock %}
 
 {% block content %}
+<main class="max-w-7xl mx-auto mt-10 px-4">
 
-<main class="max-w-lg mx-auto mt-10 bg-white rounded-lg shadow p-6">
-    <h2 class="text-2xl font-bold mb-6">{{ post.title }}</h2>
-    <p class="mb-4">{{ post.description }}</p>
-    <p class="text-gray-600 mb-4">Posted by: {{ post.owner.username }}</p>
-    
-    {% if post.image %}
-        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded mb-4">
-    {% endif %}
-    
-    <div class="space-y-4">
-        {% if post.post_type == 'swap' %}
-            <p><strong>Swap Item Description:</strong> {{ post.swap_item_description }}</p>
-        {% elif post.post_type == 'buy_sell' %}
-            <p><strong>Price:</strong> {{ post.price }}</p>
-        {% elif post.post_type == 'donation' %}
-            <p><strong>Donation Details:</strong> {{ post.condition }}</p>
+    <!-- Post Card -->
+    <section class="bg-white shadow-lg rounded-xl p-6">
+        <h2 class="text-3xl font-bold mb-4">{{ post.title }}</h2>
+        <p class="mb-4 text-gray-700">{{ post.description }}</p>
+        <p class="text-gray-500 mb-4">Posted by: {{ post.owner.username }}</p>
+
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-auto rounded-lg mb-4">
         {% endif %}
-    </div>
 
-    {% if post.leaflet_lat and post.leaflet_lng %}
-        <div id="map" class="mt-6" style="height: 400px; border-radius: 8px;"></div>
-    {% endif %}
+        <div class="space-y-3 mb-4">
+            {% if post.post_type == 'swap' %}
+                <p><strong>Swap Item Description:</strong> {{ post.swap_item_description }}</p>
+            {% elif post.post_type == 'buy_sell' %}
+                <p><strong>Price:</strong> {{ post.price }}</p>
+            {% elif post.post_type == 'donation' %}
+                <p><strong>Donation Details:</strong> {{ post.condition }}</p>
+            {% endif %}
+        </div>
 
-    {% if post.owner == user %}
-    <div class="mt-6">
-        <a href="{% url 'post_edit' post.id %}" 
-           class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Edit Post</a>
-        <form method="post" action="{% url 'post_delete' post.id %}" class="inline-block ml-2">
-            {% csrf_token %}
-            <button type="submit" 
-                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Delete Post</button>
-        </form>
-    </div>
-    {% endif %}
+        {% if post.leaflet_lat and post.leaflet_lng %}
+            <div id="map" class="w-full h-96 rounded-lg shadow mb-4"></div>
+        {% endif %}
+
+        {% if post.owner == user %}
+        <div class="mt-4 flex space-x-2">
+            <a href="{% url 'post_edit' post.id %}" 
+               class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+               Edit Post
+            </a>
+            <form method="post" action="{% url 'post_delete' post.id %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">
+                        Delete Post
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </section>
+
 </main>
 
 {% if post.leaflet_lat and post.leaflet_lng %}
@@ -54,6 +62,7 @@
         .bindPopup("<b>{{ post.title }}</b><br>{{ post.description|truncatechars:50 }}")
         .openPopup();
 </script>
-{% endif %}
 
+
+{% endif %}
 {% endblock %}

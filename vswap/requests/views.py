@@ -1,4 +1,5 @@
 # requests/views.py
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -60,36 +61,196 @@ def send_request(request, post_id):
     return render(request, 'requests/request_form.html', {'form': form, 'post': target_post})
 
 
-@login_required
-def request_list(request):
-    # แสดงคำขอทั้งหมดที่ส่งมายังโพสต์ของผู้ใช้ที่ล็อกอิน
-    requests = Request.objects.filter(post__owner=request.user).order_by('-created_at')
-    return render(request, 'requests/request_list.html', {'requests': requests})
-
-
-@login_required
-def my_requests(request):
-    # แสดงคำขอทั้งหมดที่ผู้ใช้ที่ล็อกอินเป็นคนส่ง
-    my_requests = Request.objects.filter(requester=request.user).order_by('-created_at')
-    return render(request, 'requests/my_requests.html', {'my_requests': my_requests})
-
 
 @login_required
 def respond_request(request, request_id, action):
     swap_request = get_object_or_404(Request, id=request_id, post__owner=request.user)
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    if swap_request.status != 'pending':
+        messages.warning(request, "คำขอนี้ได้รับการดำเนินการแล้ว")
+        return redirect('request_page')
 
     if action == 'accept':
         swap_request.status = 'accepted'
-        # เพิ่ม logic การจัดการเมื่อมีการยอมรับคำขอ
-        # เช่น อัปเดตสถานะของโพสต์เป็น "แลกเปลี่ยนแล้ว" หรือ "ขายแล้ว"
     elif action == 'reject':
         swap_request.status = 'rejected'
-    
-    # ตรวจสอบว่าคำขอถูกตอบรับไปแล้วหรือยัง
-    if swap_request.status != 'pending':
-        messages.warning(request, "คำขอนี้ได้รับการดำเนินการแล้ว")
     else:
-        swap_request.save()
-        messages.success(request, f"คำขอถูก {swap_request.get_status_display()} แล้ว")
+        messages.error(request, "คำสั่งไม่ถูกต้อง")
+        return redirect('request_page')
 
-    return redirect('requests')
+    swap_request.save()
+    messages.success(request, f"คุณได้ {swap_request.get_status_display()} คำขอแล้ว")
+
+    return redirect('request_page')
+
+@login_required
+def request_page(request):
+    my_requests = Request.objects.filter(
+        requester=request.user
+    ).order_by('-created_at')
+
+    incoming_requests = Request.objects.filter(
+        post__owner=request.user
+    ).order_by('-created_at')
+
+    return render(request, 'requests/requests_page.html', {
+        'my_requests': my_requests,
+        'incoming_requests': incoming_requests,
+    })
+
+
+@login_required
+def get_accept_status(request, request_id):
+    swap_request = get_object_or_404(Request, id=request_id)
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    
+    # ใครเป็นใคร
+    if request.user == swap_request.requester:
+        my_status = swap_request.user1_status
+        other_status = swap_request.user2_status
+    else:
+        my_status = swap_request.user2_status
+        other_status = swap_request.user1_status
+
+    both_accepted = (
+        swap_request.user1_status == "accepted" and 
+        swap_request.user2_status == "accepted"
+    )
+
+    return JsonResponse({
+        "my_status": my_status,
+        "other_status": other_status,
+        "done": both_accepted
+    })
+
+@login_required
+def submit_accept(request, request_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    swap_request = get_object_or_404(Request, id=request_id)
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    
+    if request.user == swap_request.requester:
+        swap_request.user1_status = "accepted"
+    else:
+        swap_request.user2_status = "accepted"
+
+    # เช็คว่าทั้งคู่กดยืนยันแล้ว
+    if swap_request.user1_status == "accepted" and swap_request.user2_status == "accepted":
+        swap_request.status = "accepted"
+
+    swap_request.save()
+    return JsonResponse({"ok": True})
+
+@login_required
+def cancel_accept(request, request_id):
+    swap_request = get_object_or_404(Request, id=request_id)
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    # reset ทั้งคู่กลับไป pending
+    swap_request.user1_status = "pending"
+    swap_request.user2_status = "pending"
+    swap_request.save()
+
+    return JsonResponse({"ok": True})
+login_required
+def cancel_request(request, request_id):
+    swap_request = get_object_or_404(Request, id=request_id)
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    swap_request.status = 'pending'
+    swap_request.save()
+    messages.success(request, "คุณได้ยกเลิกคำขอเรียบร้อยแล้ว")
+    return redirect('request_page')
+
+
+@login_required
+def request_confirm(request, request_id):
+    swap_request = get_object_or_404(Request, id=request_id)
+    
+    if request.user not in [swap_request.requester, swap_request.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'confirm_user1':
+            swap_request.user1_status = 'accepted'
+        elif action == 'confirm_user2':
+            swap_request.user2_status = 'accepted'
+        swap_request.save()
+
+        # ตรวจสอบว่าทั้งสองฝ่ายยืนยันแล้วหรือไม่
+        if swap_request.user1_status == 'accepted' and swap_request.user2_status == 'accepted':
+            swap_request.status = 'accepted'
+            swap_request.save()
+            messages.success(request, "การแลกเปลี่ยนเสร็จสมบูรณ์ 🎉")
+            return redirect('request_page')
+
+        messages.success(request, "คุณได้ยืนยันคำขอแล้ว รออีกฝ่ายยืนยัน")
+        return redirect('request_page')
+
+    return render(request, 'requests/request_confirm.html', {'swap_request': swap_request})
+
+
+
+@login_required
+def request_map_confirm(request, request_id):
+    req = get_object_or_404(Request, id=request_id)
+    if request.user not in [req.requester, req.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+
+    return render(request, "requests/request_map_confirm.html", {"req": req})
+
+@login_required
+def api_map_status(request, request_id):
+    req = get_object_or_404(Request, id=request_id)
+    if request.user not in [req.requester, req.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+
+    if request.user == req.requester:
+        my_confirmed = req.user1_position_confirmed
+        other_confirmed = req.user2_position_confirmed
+    else:
+        my_confirmed = req.user2_position_confirmed
+        other_confirmed = req.user1_position_confirmed
+
+    return JsonResponse({
+        "my_confirmed": my_confirmed,
+        "other_confirmed": other_confirmed,
+        "lat": req.position_lat,
+        "lng": req.position_lng
+    })
+
+
+@login_required
+def api_submit_map_position(request, request_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    
+    req = get_object_or_404(Request, id=request_id)
+    if request.user not in [req.requester, req.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+
+    lat = float(request.POST.get("lat"))
+    lng = float(request.POST.get("lng"))
+
+    position_changed = (req.position_lat != lat) or (req.position_lng != lng)
+    req.position_lat = lat
+    req.position_lng = lng
+
+    if position_changed:
+        req.user1_position_confirmed = False
+        req.user2_position_confirmed = False
+
+    if request.user == req.requester:
+        req.user1_position_confirmed = True
+    else:
+        req.user2_position_confirmed = True
+
+    req.save()
+
+    return JsonResponse({"ok": True, "reset": position_changed})

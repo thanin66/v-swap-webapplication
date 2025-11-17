@@ -1,60 +1,72 @@
 {% extends "base.html" %}
 
-{% block title %}Post List{% endblock %}
+{% block title %}โพสต์ทั้งหมด | VSwap{% endblock %}
 
 {% block content %}
-<body class="bg-gray-100 min-h-screen p-6" x-data="{ open: false }" @open-post-modal.window="open = true">
-    <main class="max-w-7xl mx-auto py-8">
-        
-        <h2 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">
-            <div class="flex justify-between items-center">
-                โพสต์ทั้งหมด
-                <button 
-                @click="open = true" 
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                + สร้างโพสต์
-                </button>
+<div class="bg-gray-100 min-h-screen p-6" x-data="{ open: false }" @open-post-modal.window="open = true">
+
+    <!-- Header Section -->
+    <section class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center">
+        <h2 class="text-4xl font-extrabold text-gray-800 mb-4 md:mb-0">
+            โพสต์ทั้งหมด
         </h2>
+        <button 
+            @click="open = true" 
+            class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+            + สร้างโพสต์
+        </button>
+    </section>
+
+    <!-- Posts Grid -->
+    <section class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for post in posts %}
                 {% include "posts/post_card.html" %}
             {% empty %}
-                <div class="col-span-full text-center text-gray-500">
-                    <p>ยังไม่มีโพสต์ในขณะนี้</p>
+                <div class="col-span-full text-center text-gray-500 py-10">
+                    ยังไม่มีโพสต์ในขณะนี้
                 </div>
             {% endfor %}
         </div>
-    </main>
-</body>
+    </section>
 
-<!-- Modal -->
-<div 
-    x-show="open"
-    class="fixed inset-0 flex items-center justify-center bg-black/50"
-    style="display: none;"
->
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">เลือกประเภทโพสต์</h2>
-      <div class="flex gap-3"> 
-        <button 
-            @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
-            class="px-4 py-2 bg-green-500 text-white rounded-lg">Swap</button>
-        <button 
-            @click="window.location.href='{% url 'post_create' post_type='buy_sell' %}'" 
-            class="px-4 py-2 bg-yellow-500 text-white rounded-lg">Buy & Sell</button>
-        <button 
-            @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
-            class="px-4 py-2 bg-purple-500 text-white rounded-lg">Donation</button>
-      </div>
+    <!-- Modal เลือกประเภทโพสต์ -->
+    <div 
+        x-show="open"
+        x-transition
+        class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+        style="display: none;"
+    >
+        <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 text-center">เลือกประเภทโพสต์</h2>
 
-      <div class="mt-6 text-right">
-        <button 
-            @click="open=false" 
-            class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">
-            ปิด
-        </button>
-      </div>
-  </div>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button 
+                    @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
+                    class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                    Swap
+                </button>
+                <button 
+                    @click="window.location.href='{% url 'post_create' post_type='buy_sell' %}'" 
+                    class="flex-1 px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                    Buy & Sell
+                </button>
+                <button 
+                    @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
+                    class="flex-1 px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">
+                    Donation
+                </button>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button 
+                    @click="open=false" 
+                    class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
-
 {% endblock %}

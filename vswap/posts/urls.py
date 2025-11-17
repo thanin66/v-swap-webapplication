@@ -11,4 +11,7 @@ urlpatterns = [
     path('post/create/<str:post_type>/', views.post_create, name='post_create'),
 
     path("map/", views.map_view, name="map"), 
+
+    path("search/", views.search_view, name="search"),
+
 ]

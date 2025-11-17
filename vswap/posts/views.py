@@ -1,10 +1,14 @@
 import json
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Post, Swap, BuySell, Donation
 from .forms import BuySellForm, DonationForm, PostForm, SwapForm
 from itertools import chain
 from django.views.generic import DetailView
+from django.db.models import Q
+
+
 
 form_mapping = {
     'swap': SwapForm,
@@ -56,7 +60,6 @@ def post_create(request, post_type):
         'post_type': post_type,
     })
 
-
 @login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk, owner=request.user)
@@ -75,6 +78,7 @@ def post_edit(request, pk):
     return render(request, 'posts/post_form.html', {
         'form': form,
         'post_type': post.post_type,
+        'post': post,
     })
 
 @login_required
@@ -97,7 +101,40 @@ def map_view(request):
     # ดึงโพสต์ทั้งหมดที่มี lat/lng
     posts_qs = Post.objects.exclude(leaflet_lat__isnull=True, leaflet_lng__isnull=True)
     
-    # แปลงเป็น list ของ dict
-    posts = list(posts_qs.values('id', 'title', 'description', 'leaflet_lat', 'leaflet_lng'))
+    # แปลงเป็น list ของ dict และรวม post_type
+    posts = list(posts_qs.values('id', 'title', 'description', 'leaflet_lat', 'leaflet_lng', 'post_type'))
     
     return render(request, 'posts/map.html', {'posts': posts})
+
+
+def search_view(request):
+    q = request.GET.get("q", "").strip()
+    if len(q) < 2:
+        return JsonResponse([], safe=False)
+
+    results = (
+        Post.objects.filter(
+            Q(title__icontains=q) |
+            Q(description__icontains=q) |
+            Q(title__startswith=q) |
+            Q(description__startswith=q)
+        )
+        .values("id", "title", "post_type", "image")
+        .distinct()[:10]
+    )
+
+    data = []
+    for r in results:
+        image_url = (
+            request.build_absolute_uri(f"/media/{r['image']}")
+            if r["image"]
+            else "/static/images/default-thumb.jpg"
+        )
+        data.append({
+            "id": r["id"],
+            "title": r["title"],
+            "type": dict(Post.POST_TYPES).get(r["post_type"], ""),
+            "url": f"/posts/post/{r['id']}/",
+            "image": image_url,
+        })
+    return JsonResponse(data, safe=False)

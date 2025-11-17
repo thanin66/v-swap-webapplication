@@ -1,81 +1,119 @@
 {% extends "base.html" %}
 
-{% block title %}Post Form{% endblock %}
+{% block title %}{% if post %}Edit Post{% else %}Create Post{% endif %}{% endblock %}
 
 {% block content %}
-<body class="bg-gray-100 min-h-screen p-6">
+<main class="max-w-7xl mx-auto mt-10 px-4">
 
-    <div class="container mx-auto max-w-lg p-6 my-8 bg-white rounded-lg shadow-xl border border-gray-200"
-         x-data="postForm()" x-init="init()">
-
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-6">
-            {% if post %} Edit Post {% else %} Create New Post {% endif %}
+    <!-- Post Form Card -->
+    <section class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 space-y-6">
+        <h1 class="text-3xl font-extrabold text-gray-900">
+            {% if post %} แก้ไขโพสต์ {% else %} สร้างโพสต์ใหม่ {% endif %}
         </h1>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
+        <form method="post" enctype="multipart/form-data" x-data="postForm()" x-init="init()" class="space-y-6">
             {% csrf_token %}
-            {{ form.as_p }}
 
-            <!-- Hidden inputs สำหรับส่งค่าแผนที่ ใช้ x-model แทน :value -->
-            <input type="hidden" name="leaflet_lat" x-model="lat">
-            <input type="hidden" name="leaflet_lng" x-model="lng">
+            <!-- Render fields แบบเลือก -->
+            <div>
+                {{ form.title.label_tag }}
+                {{ form.title }}
+                {% for error in form.title.errors %}
+                    <p class="text-red-500 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
 
-            <!-- แผนที่ -->
-            <div id="map" class="mt-4" style="height:400px; border-radius:8px;"></div>
+            <div>
+                {{ form.description.label_tag }}
+                {{ form.description }}
+                {% for error in form.description.errors %}
+                    <p class="text-red-500 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
 
-            <p class="text-sm text-gray-500 mt-2">
-                เลือกตำแหน่ง: <span x-text="lat"></span>, <span x-text="lng"></span>
-            </p>
+            <div>
+                {{ form.post_type.label_tag }}
+                {{ form.post_type }}
+                {% for error in form.post_type.errors %}
+                    <p class="text-red-500 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            {% if form.swap_item_description %}
+            <div>
+                {{ form.swap_item_description.label_tag }}
+                {{ form.swap_item_description }}
+                {% for error in form.swap_item_description.errors %}
+                    <p class="text-red-500 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div>
+                {{ form.image.label_tag }}
+                {{ form.image }}
+                {% for error in form.image.errors %}
+                    <p class="text-red-500 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Hidden fields สำหรับส่งค่าแผนที่ -->
+            {{ form.leaflet_lat }}
+            {{ form.leaflet_lng }}
+
+            <!-- Map -->
+            <div id="map" class="w-full h-96 rounded-lg shadow mb-2"></div>
+            <p class="text-sm text-gray-500">เลือกตำแหน่ง: <span x-text="lat"></span>, <span x-text="lng"></span></p>
 
             <div class="flex justify-between mt-6">
-                <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-                    {% if post %} Update Post {% else %} Create Post {% endif %}
+                <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                    {% if post %} อัพเดตโพสต์ {% else %} สร้างโพสต์ {% endif %}
                 </button>
-                <a href="{% url 'post_list' %}" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">Cancel</a>
+                <a href="{% url 'post_list' %}" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition">ยกเลิก</a>
             </div>
         </form>
-    </div>
+    </section>
 
-    <script>
-    function postForm() {
-        return {
-            lat: {{ post.leaflet_lat|default:0 }},
-            lng: {{ post.leaflet_lng|default:0 }},
-            _marker: null,
-            init() {
-                let defaultLat = this.lat || 13.736717;
-                let defaultLng = this.lng || 100.523186;
+</main>
 
-                var map = L.map('map').setView([defaultLat, defaultLng], 6);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+<script>
+function postForm() {
+    return {
+        lat: {{ post.leaflet_lat|default:0 }},
+        lng: {{ post.leaflet_lng|default:0 }},
+        _marker: null,
+        init() {
+            let defaultLat = this.lat || 13.736717;
+            let defaultLng = this.lng || 100.523186;
 
-                if (this.lat && this.lng) {
-                    this._marker = L.marker([this.lat, this.lng]).addTo(map);
-                }
+            var map = L.map('map').setView([defaultLat, defaultLng], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
 
-                map.on('click', (e) => this.setMarker(e.latlng, map));
-
-                // Search box
-                L.Control.geocoder({ defaultMarkGeocode: false })
-                    .on('markgeocode', (e) => {
-                        var latlng = e.geocode.center;
-                        map.setView(latlng, 15);
-                        this.setMarker(latlng, map);
-                    })
-                    .addTo(map);
-            },
-            setMarker(latlng, map) {
-                this.lat = latlng.lat.toFixed(6);
-                this.lng = latlng.lng.toFixed(6);
-
-                if (this._marker) map.removeLayer(this._marker);
+            if (this.lat && this.lng) {
                 this._marker = L.marker([this.lat, this.lng]).addTo(map);
             }
+
+            map.on('click', (e) => this.setMarker(e.latlng, map));
+
+            L.Control.geocoder({ defaultMarkGeocode: false })
+                .on('markgeocode', (e) => {
+                    var latlng = e.geocode.center;
+                    map.setView(latlng, 15);
+                    this.setMarker(latlng, map);
+                })
+                .addTo(map);
+        },
+        setMarker(latlng, map) {
+            this.lat = latlng.lat.toFixed(6);
+            this.lng = latlng.lng.toFixed(6);
+
+            if (this._marker) map.removeLayer(this._marker);
+            this._marker = L.marker([this.lat, this.lng]).addTo(map);
         }
     }
-    </script>
-</body>
+}
+</script>
 {% endblock %}
