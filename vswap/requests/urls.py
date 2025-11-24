@@ -22,4 +22,7 @@ urlpatterns = [
     path('api/map/status/<int:request_id>/', views.api_map_status, name='api_get_map_status'),
     path('api/map/submit/<int:request_id>/', views.api_submit_map_position, name='api_submit_map_position'),
 
+    path("next-step/<int:request_id>/", views.next_step, name="next_step"),
+    path('posts/update-multiple-status/', views.update_multiple_post_status, name='update_multiple_post_status'),
+
 ]

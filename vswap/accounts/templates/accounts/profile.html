@@ -7,27 +7,33 @@
 
   <!-- User Info Section -->
   <section class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
-    {% if user.userprofile and user.userprofile.profile_picture %}
-        <img src="{{ user.userprofile.profile_picture.url }}"
-            class="w-24 h-24 rounded-full object-cover border">
-    {% endif %}
-    <div>
-        <h2 class="text-2xl font-bold">{{ user.username }}</h2>
-        <p class="text-gray-600">{{ user.email }}</p>
-        <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
-        <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
-          Edit Profile
-        </a>
-    </div>
+      {% if user.userprofile and user.userprofile.profile_picture %}
+          <img src="{{ user.userprofile.profile_picture.url }}"
+              class="w-24 h-24 rounded-full object-cover border">
+      {% endif %}
+      <div>
+          <h2 class="text-2xl font-bold">{{ user.username }}</h2>
+          <p class="text-gray-600">{{ user.email }}</p>
+          <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
+
+          <!-- แก้ไขเฉพาะเจ้าของโปรไฟล์ -->
+          {% if request.user == user %}
+              <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
+                  Edit Profile
+              </a>
+          {% endif %}
+      </div>
   </section>
 
   <!-- Requests Section -->
   <section class="mb-8">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-3xl font-bold">คำขอ</h2>
-      <a href="{% url 'request_page' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-        ดูคำขอ
-      </a>
+    {% if request.user == user %}
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-3xl font-bold">คำขอ</h2>
+        <a href="{% url 'request_page' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
+          ดูคำขอ
+        </a>
+    {% endif %}
     </div>
   </section>
 

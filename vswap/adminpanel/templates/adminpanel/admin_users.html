@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Admin User {% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl flex justify-center font-bold mb-6">จัดการผู้ใช้</h1>
+
+<div class ="flex justify-center bg-white shadow rounded-lg ">
+    <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">ชื่อผู้ใช้</th>
+                <th class="px-4 py-2">Email</th>
+                <th class="px-4 py-2">สถานะ</th>
+                <th class="px-4 py-2">การกระทำ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ user.id }}</td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'profile_by_id' user.id %}" class="text-indigo-600 hover:underline">
+                        {{ user.username }}
+                    </a>
+                </td>
+                <td class="px-4 py-2">{{ user.email }}</td>
+                <td class="px-4 py-2 flex justify-center items-center space-x-2">
+                    {% if not user.is_superuser %}
+                        <a href="{% url 'delete_user' user.id %}" 
+                        onclick="return confirm('ลบผู้ใช้นี้?')" 
+                        class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+                        ลบ
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'profile_by_id' user.id %}" 
+                    class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">
+                    ดูโปรไฟล์
+                    </a>
+
+                    <a href="#" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">
+                    Report
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+<a href="{% url 'admin_dashboard' %}" class="inline-block mt-4 text-indigo-600 hover:underline">
+    กลับ Dashboard
+</a>
+{% endblock %}

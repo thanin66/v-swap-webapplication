@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Posts {% endblock %}
+
+{% block content %}
+
+<h1 class="flex justify-center text-3xl font-bold mb-6">จัดการโพสต์</h1>
+<div class ="flex justify-center bg-white shadow rounded-lg ">
+    <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">ชื่อโพสต์</th>
+                <th class="px-4 py-2">ผู้สร้าง</th>
+                <th class="px-4 py-2">ประเภท</th>
+                <th class="px-4 py-2">การกระทำ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ post.id }}</td>
+                <td class="px-4 py-2">{{ post.title }}</td>
+                <td class="px-4 py-2">
+                    {% if post.user and post.user.id %}
+                        <a href="{% url 'profile_by_id' post.user.id %}" class="text-indigo-600 hover:underline">
+                            {{ post.user.username }}
+                        </a>
+                    {% else %}
+                        ผู้ใช้ไม่ทราบ
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 capitalize">{{ post.post_type }}</td>
+                <td class="px-4 py-2 space-x-2">
+                    <a href="{% url 'post_detail' post.id %}" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">ดูโพสต์</a>
+                    <a href="{% url 'delete_post' post.id %}" onclick="return confirm('ลบโพสต์นี้?')" 
+                    class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">ลบ</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<a href="{% url 'admin_dashboard' %}" class="inline-block mt-4 text-indigo-600 hover:underline">
+    กลับ Dashboard
+</a>
+{% endblock %}

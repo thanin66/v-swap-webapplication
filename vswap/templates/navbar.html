@@ -50,8 +50,12 @@
 
         <!-- Desktop Profile -->
         <div class="hidden md:flex items-center space-x-4">
+            {% if user.is_authenticated and user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="nav-btn bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg">
+                    Admin
+                </a>
+            {% endif %}
             {% if user.is_authenticated %}
-                <span class="text-white font-semibold">สวัสดี {{ user.username }}</span>
                 <a href="{% url 'profile' %}" class="nav-btn">โปรไฟล์</a>
             {% else %}
                 <a href="{% url 'login' %}" class="nav-btn">ล็อกอิน</a>
@@ -81,6 +85,11 @@
         {% if user.is_authenticated %}
             <span class="mobile-btn">สวัสดี {{ user.username }}</span>
             <a href="{% url 'profile' %}" class="mobile-btn">โปรไฟล์</a>
+            {% if user.is_authenticated and user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="mobile-btn bg-red-600">
+                    Admin
+                </a>
+            {% endif %}
             <a href="{% url 'logout' %}" class="mobile-btn text-red-300">ออกจากระบบ</a>
         {% else %}
             <a href="{% url 'login' %}" class="mobile-btn">ล็อกอิน</a>

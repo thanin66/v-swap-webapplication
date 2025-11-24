@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard {% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl flex justify-center font-bold mb-6">Admin Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white shadow rounded-lg p-6 text-center">
+        <h2 class="text-xl font-semibold mb-2">จัดการโพสต์</h2>
+        <p class="mb-4">ดู / ลบโพสต์ทั้งหมด</p>
+        <a href="{% url 'admin_posts' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            เข้าไปจัดการ
+        </a>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6 text-center">
+        <h2 class="text-xl font-semibold mb-2">จัดการผู้ใช้</h2>
+        <p class="mb-4">ดูโปรไฟล์และจัดการผู้ใช้</p>
+        <a href="{% url 'admin_users' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            เข้าไปจัดการ
+        </a>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6 text-center">
+        <h2 class="text-xl font-semibold mb-2">รายงาน (Report)</h2>
+        <p class="mb-4">สถิติและข้อมูลสรุป</p>
+        <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+            ดูรายงาน
+        </button>
+    </div>
+</div>
+{% endblock %}

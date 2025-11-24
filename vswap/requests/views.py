@@ -254,3 +254,30 @@ def api_submit_map_position(request, request_id):
     req.save()
 
     return JsonResponse({"ok": True, "reset": position_changed})
+
+@login_required
+def next_step(request, request_id):
+    swap_request = get_object_or_404(Request, id=request_id)
+
+    post = swap_request.post
+    offered_post = swap_request.offered_product
+
+    return render(request, "requests/next_step.html", {
+        "request_obj": swap_request,
+        "post": post,
+        "offered_post": offered_post,
+    })
+
+@login_required
+def update_multiple_post_status(request):
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        post_ids = request.POST.get('post_ids', '') 
+        ids = [int(pk) for pk in post_ids.split(',') if pk.isdigit()]
+
+        for pk in ids:
+            post = get_object_or_404(Post, id=pk)
+            post.status = status
+            post.save()
+
+    return redirect('home')

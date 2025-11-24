@@ -1,5 +1,5 @@
 # Create your views here.
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from accounts.models import CustomUser, UserProfile
@@ -50,11 +50,10 @@ def get_profile_by_id(user_id):
     except CustomUser.DoesNotExist:
         return None
     
-#profile view
 @login_required
 def profile_view(request, user_id=None):
     if user_id:
-        user = CustomUser.objects.get(id=user_id)
+        user = get_object_or_404(CustomUser, id=user_id)
     else:
         user = request.user
 
@@ -62,7 +61,7 @@ def profile_view(request, user_id=None):
     tabs = ["all", "swap", "buy_sell", "donation"]
 
     return render(request, "accounts/profile.html", {
-        "user_profile": user,   # เปลี่ยนชื่อ key ให้ชัดเจน
+        "user": user,       # key ที่ template ใช้
         "posts": posts,
         "tabs": tabs,
     })
