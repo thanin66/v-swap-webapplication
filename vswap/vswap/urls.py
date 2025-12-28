@@ -22,11 +22,16 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    
     path("", include("accounts.urls")),
+
     path('posts/', include('posts.urls')),
-    path('requests/', include('requests.urls')),
+
+    path('requests/', include('item_requests.urls')),
 
     path('vswap-admin/', include('adminpanel.urls')),
+
+    path('chat/', include('chat.urls')),
 ]
 
 

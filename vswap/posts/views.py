@@ -2,13 +2,12 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Post, Swap, BuySell, Donation
+from .models import Post, PostReport, Swap, BuySell, Donation
 from .forms import BuySellForm, DonationForm, PostForm, SwapForm
 from itertools import chain
 from django.views.generic import DetailView
 from django.db.models import Q
-
-
+from django.urls import reverse
 
 form_mapping = {
     'swap': SwapForm,
@@ -16,35 +15,64 @@ form_mapping = {
     'donation': DonationForm,
 }
 
+from .matching import find_matches_for_user
 
 def post_list(request):
     buysell_posts = BuySell.objects.all()
     donation_posts = Donation.objects.all()
     swap_posts = Swap.objects.all()
     
-    # รวม QuerySets ทั้งหมดเข้าด้วยกัน
     all_posts = sorted(
         chain(buysell_posts, donation_posts, swap_posts),
         key=lambda x: x.created_at,
         reverse=True
-    )   
-    # เรียงลำดับตามวันที่สร้าง (created_at) จากใหม่ไปเก่า
-    all_posts.sort(key=lambda x: x.created_at, reverse=True)
+    )
     
-    return render(request, 'posts/post_list.html', {'posts': all_posts})
+    # --- [ส่วนที่ต้องเพิ่ม] ---
+    matches_incoming = []
+    matches_outgoing = []
+    
+    # ตรวจสอบว่าล็อกอินหรือยัง ก่อนเรียกใช้ AI
+    if request.user.is_authenticated:
+        matches_incoming, matches_outgoing = find_matches_for_user(request.user)
+    # -----------------------
 
-
+    context = {
+        'posts': all_posts,
+        # ส่งตัวแปรแมทช์ไปที่หน้าเว็บ
+        'matches_incoming': matches_incoming, 
+        'matches_outgoing': matches_outgoing,
+    }
+    
+    return render(request, 'posts/post_list.html', context)
 class PostDetailView(DetailView):
     model = Post
     template_name = 'posts/post_detail.html'
+    context_object_name = 'post'  
 
+    def get_object(self, queryset=None):
+        pk = self.kwargs.get(self.pk_url_kwarg or 'pk')
+        post = get_object_or_404(Post, pk=pk)
+
+        try:
+            if post.post_type == 'swap':
+                return Swap.objects.get(pk=pk)
+            if post.post_type == 'buy_sell':
+                return BuySell.objects.get(pk=pk)
+            if post.post_type == 'donate':
+                return Donation.objects.get(pk=pk)
+        except (Swap.DoesNotExist, BuySell.DoesNotExist, Donation.DoesNotExist):
+            return post
+
+        return post
+    
 
 @login_required
 def post_create(request, post_type):
     form_class = form_mapping.get(post_type)
     if not form_class:
         return redirect('home')
-
+    
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES)
         if form.is_valid():
@@ -108,33 +136,84 @@ def map_view(request):
 
 
 def search_view(request):
-    q = request.GET.get("q", "").strip()
-    if len(q) < 2:
-        return JsonResponse([], safe=False)
+    try:
+        q = request.GET.get("q", "").strip()
+        
+        # 1. ถ้าคำค้นหาสั้นเกินไป ให้คืนค่าว่าง
+        if len(q) < 2:
+            return JsonResponse([], safe=False)
 
-    results = (
-        Post.objects.filter(
+        # 2. ค้นหาข้อมูล (ใช้ object เต็มๆ ป้องกัน error เรื่อง field หาย)
+        posts = Post.objects.filter(
             Q(title__icontains=q) |
             Q(description__icontains=q) |
-            Q(title__startswith=q) |
-            Q(description__startswith=q)
-        )
-        .values("id", "title", "post_type", "image")
-        .distinct()[:10]
-    )
+            Q(owner__username__icontains=q)
+        ).select_related('owner').order_by('-created_at')[:10]
 
-    data = []
-    for r in results:
-        image_url = (
-            request.build_absolute_uri(f"/media/{r['image']}")
-            if r["image"]
-            else "/static/images/default-thumb.jpg"
-        )
-        data.append({
-            "id": r["id"],
-            "title": r["title"],
-            "type": dict(Post.POST_TYPES).get(r["post_type"], ""),
-            "url": f"/posts/post/{r['id']}/",
-            "image": image_url,
-        })
-    return JsonResponse(data, safe=False)
+        data = []
+        for post in posts:
+            # 3. จัดการรูปภาพแบบปลอดภัย (ถ้าไม่มีรูป ให้ใช้รูป default)
+            if post.image:
+                image_url = post.image.url
+            else:
+                image_url = "https://t4.ftcdn.net/jpg/05/97/47/95/360_F_597479556_7bbQ7t4Z8k3xbAloHFHVdZIizWK1PdOo.jpg"
+
+            # 4. สร้าง JSON Response
+            data.append({
+                "id": post.id,
+                "title": post.title,
+                "type": post.get_post_type_display(), # แปลง post_type เป็นชื่อภาษาไทย
+                "owner": post.owner.username,
+                "url": reverse('post_detail', args=[post.id]),
+                "image": image_url,
+
+                "lat": post.leaflet_lat, 
+                "lng": post.leaflet_lng,
+            })
+            
+        return JsonResponse(data, safe=False)
+
+    except Exception as e:
+        # ถ้ามี Error ให้แสดงใน Console ของ Server แทนที่จะเงียบไป
+        print(f" Search Error: {e}")
+        return JsonResponse([], safe=False)
+    
+
+def search_page(request):
+    query = request.GET.get('q', '')
+    posts = []
+
+    if query:
+        # ใช้ Logic การค้นหาเดียวกับ API แต่ไม่ต้องแปลงเป็น Dictionary
+        # ค้นหาจาก Title, Description และชื่อเจ้าของโพสต์
+        posts = Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(owner__username__icontains=query)
+        ).select_related('owner').order_by('-created_at')
+    
+    context = {
+        'posts': posts,
+        'query': query,
+    }
+    return render(request, 'posts/search_results.html', context)
+
+@login_required
+def report_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        reason = request.POST.get("reason", "")
+        already_reported = PostReport.objects.filter(post=post, reporter=request.user).exists()
+        if not already_reported and reason:
+
+            if reason:
+                PostReport.objects.create(
+                    post=post,
+                    reporter=request.user,
+                    reason=reason
+                )
+                return redirect('post_detail', pk=post.pk)
+        else:
+            print("User has already reported this post or reason is empty.")
+
+    return redirect('post_detail', pk=post.pk)

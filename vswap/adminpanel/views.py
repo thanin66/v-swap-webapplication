@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
-from posts.models import Post
+from posts.models import Post, PostReport
 from django.contrib.auth import get_user_model
-
+from django.db.models import Count
 
 User = get_user_model()
 
@@ -52,3 +52,20 @@ def delete_user(request, user_id):
 
     user.delete()
     return redirect('admin_users')
+
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_reports(request):
+    
+    reports_qs = PostReport.objects.select_related('reporter').order_by('-created_at')
+    posts = (
+        Post.objects
+            .annotate(report_count=Count('reports'))        
+            .filter(report_count__gt=0) 
+            .prefetch_related('reports__reporter')
+            .order_by('-report_count', '-created_at')
+    )
+
+    return render(request, 'adminpanel/admin_reports.html', {
+        'posts': posts,
+    })

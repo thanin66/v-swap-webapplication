@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}ต้องยืนยันทั้งคู่ก่อนทำการ แลกเปลี่ยน{% endblock %}
+
+{% block content %}
+
+<div 
+    x-data="twoWayAccept({{ swap_request.id }})"
+    x-init="start()"
+    class="p-5 border rounded shadow max-w-md mx-auto"
+>
+    <h2 class="text-xl font-bold mb-3">ยืนยันการทำงานร่วมกัน</h2>
+
+    <!-- สถานะของเรา -->
+    <div class="mb-3">
+        <p class="text-gray-700">สถานะของคุณ:</p>
+        <p class="font-semibold" x-text="myStatus"></p>
+    </div>
+
+    <!-- สถานะของอีกฝ่าย -->
+    <div class="mb-3">
+        <p class="text-gray-700">สถานะของอีกฝ่าย:</p>
+        <p class="font-semibold" x-text="otherStatus"></p>
+    </div>
+
+    <!-- ปุ่มกด -->
+    <div class="flex space-x-2 mt-4">
+        <!-- ปุ่มยืนยัน -->
+        <button 
+            @click="accept()"
+            class="bg-blue-600 text-white px-4 py-2 rounded"
+            :disabled="myStatus === 'accepted'"
+        >
+            <span x-show="myStatus !== 'accepted'">กดยืนยัน</span>
+            <span x-show="myStatus === 'accepted'">✔ ยืนยันแล้ว</span>
+        </button>
+
+        <!-- ปุ่มยกเลิก -->
+        <button 
+            @click="cancel()"
+            class="bg-red-600 text-white px-4 py-2 rounded"
+        >
+            ยกเลิก
+        </button>
+    </div>
+
+    <!-- ปุ่มดำเนินการต่อ: โชว์เฉพาะเมื่อทั้งสอง accepted -->
+    <button 
+        x-show="done"
+        class="mt-5 bg-green-600 text-white px-4 py-2 rounded w-full"
+        @click="goNext()"
+    >
+        ดำเนินการต่อ
+    </button>
+
+    <!-- loading -->
+    <p class="mt-3 text-sm text-gray-500" x-show="loading">กำลังโหลด...</p>
+</div>
+
+<script>
+function twoWayAccept(requestId) {
+    return {
+        myStatus: "pending",
+        otherStatus: "pending",
+        loading: false,
+        done: false,
+        interval: null,
+
+        start() {
+            this.fetchStatus();
+            this.interval = setInterval(() => this.fetchStatus(), 2000);
+        },
+
+        async fetchStatus() {
+            const res = await fetch(`/requests/api/accept/status/${requestId}/`);
+            const data = await res.json();
+
+            this.myStatus = data.my_status;
+            this.otherStatus = data.other_status;
+            this.done = data.done;  // เมื่อทั้งคู่ accepted
+        },
+
+        async accept() {
+            this.loading = true;
+            await fetch(`/requests/api/accept/submit/${requestId}/`, {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            });
+            this.loading = false;
+            this.fetchStatus();
+        },
+
+        async cancel() {
+            await fetch(`/requests/api/accept/cancel/${requestId}/`, {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            });
+
+            this.fetchStatus(); 
+        },
+
+        goNext() {
+            window.location.href = "/requests/next-step/{{ swap_request.id }}/";
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,5 +1,4 @@
-<nav class="bg-blue-700 text-white shadow-lg w-full" x-data="{ mobileOpen: false }">
-
+<nav class="bg-blue-700 text-white shadow-lg w-full relative z-50" x-data="{ mobileOpen: false }">
     <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
 
         <!-- Logo -->
@@ -13,38 +12,116 @@
             <a href="{% url 'map' %}" class="nav-btn">แผนที่</a>
 
             <!-- Search -->
-            <div x-data="{ query: '', results: [], searchOpen: false, loading: false }" class="relative w-64">
-                <input 
-                    x-model.debounce.300ms="query"
-                    @input="searchOpen = query.length >= 2"
-                    type="text"
-                    placeholder="ค้นหาโพสต์..."
-                    class="w-full px-3 py-2 rounded-lg text-black focus:ring-2 focus:ring-blue-400"
-                />
+            <div 
+                x-data="{
+                    query: '',
+                    results: [],
+                    searchOpen: false,
+                    loading: false,
+                    searchUrl: '{% url 'search' %}', 
+                    
+                    // เพิ่มฟังก์ชันนี้เข้าไปครับ
+                    goToSearchPage() {
+                        if (this.query.length > 0) {
+                            window.location.href = '{% url 'search_page' %}?q=' + encodeURIComponent(this.query);
+                        }
+                    },
+                    
+                    async fetchSearchResults() {
+                        if (this.query.length < 2) {
+                            this.results = [];
+                            this.searchOpen = false;
+                            return;
+                        }
 
-                <!-- Dropdown -->
-                <div x-show="searchOpen" x-transition
-                     class="absolute left-0 w-full bg-white text-black rounded-lg shadow-lg mt-1 z-50 max-h-72 overflow-auto">
+                        this.loading = true;
+                        this.searchOpen = true;
 
+                        try {
+                            const response = await fetch(`${this.searchUrl}?q=${encodeURIComponent(this.query)}`);
+                            
+                            if (response.ok) {
+                                this.results = await response.json();
+                            } else {
+                                console.error('Search failed:', response.status);
+                                this.results = [];
+                            }
+                        } catch (error) {
+                            console.error('Error fetching search results:', error);
+                            this.results = [];
+                        } finally {
+                            this.loading = false;
+                        }
+                    }
+                }" 
+                class="relative w-64"
+            >
+                <div class="relative">
+                    <input 
+                        x-model="query"
+                        @input.debounce.300ms="fetchSearchResults()"
+                        @focus="if(query.length >= 2) searchOpen = true"
+                        @click.outside="searchOpen = false"
+                        @keydown.enter="goToSearchPage()" 
+                        type="text"
+                        autocomplete="off" 
+                        placeholder="ค้นหาโพสต์, ชื่อผู้ใช้..."
+                        class="w-full pl-10 pr-4 py-2 rounded-full text-gray-700 bg-blue-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-300 shadow-inner"
+                    />
+                    
+                    <div x-show="loading" class="absolute right-3 top-2.5 text-blue-500" style="display: none;">
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div 
+                    x-show="searchOpen" 
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 translate-y-1"
+                    class="absolute left-0 w-80 bg-white text-black rounded-xl shadow-2xl mt-2 z-[9999] max-h-96 overflow-y-auto border border-gray-100"
+                    style="display: none;"
+                >
                     <template x-for="result in results" :key="result.id">
                         <a :href="result.url" 
-                           class="flex items-center px-3 py-2 hover:bg-blue-50 border-b last:border-none">
-                            <img :src="result.image" class="w-12 h-12 object-cover rounded mr-3">
-                            <div>
-                                <div class="font-semibold" x-text="result.title"></div>
-                                <div class="text-xs text-gray-500" x-text="result.type"></div>
+                        class="flex items-start px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-none transition duration-150 group">
+                            
+                            <img :src="result.image" class="w-12 h-12 object-cover rounded-lg shadow-sm mr-3">
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="font-bold text-gray-800 text-sm truncate" x-text="result.title"></div>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <span class="px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 mr-2" x-text="result.type"></span>
+                                    <span class="truncate">โดย <span x-text="result.owner"></span></span>
+                                </div>
                             </div>
                         </a>
                     </template>
 
                     <div x-show="!loading && results.length === 0" 
-                         class="px-3 py-2 text-gray-500">
-                         ไม่พบผลลัพธ์
+                        class="px-4 py-4 text-center text-gray-500 text-sm">
+                        <span x-show="query.length >= 2">ไม่พบผลลัพธ์</span>
+                        <span x-show="query.length < 2">พิมพ์อย่างน้อย 2 ตัวอักษร</span>
+                    </div>
+
+                    <div x-show="results.length > 0" class="p-2 bg-gray-50 sticky bottom-0 border-t border-gray-200 text-center">
+                        <button @click="goToSearchPage()" class="text-blue-600 text-sm font-semibold hover:underline w-full">
+                            ดูผลลัพธ์ทั้งหมด
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <button @click="notReadyModal = true" class="nav-btn">แชท</button>
+            <a href="{% url 'chat_home' %}" class="nav-btn">
+                แชท
+            </a>
+            
             <a href="{% url 'request_page' %}" class="nav-btn">กล่องคำขอ</a>
         </div>
 
@@ -80,8 +157,9 @@
         <a href="{% url 'home' %}" class="mobile-btn">หน้าแรก</a>
         <a href="{% url 'post_list' %}" class="mobile-btn">โพสต์ทั้งหมด</a>
         <a href="{% url 'map' %}" class="mobile-btn">แผนที่</a>
-        <a href="{% url 'request_page' %}" class="mobile-btn">กล่องคำขอ</a>
 
+        <a href="{% url 'request_page' %}" class="mobile-btn">กล่องคำขอ</a>
+        <a href="{% url 'chat_home' %}" class="mobile-btn"> แชท</a>
         {% if user.is_authenticated %}
             <span class="mobile-btn">สวัสดี {{ user.username }}</span>
             <a href="{% url 'profile' %}" class="mobile-btn">โปรไฟล์</a>

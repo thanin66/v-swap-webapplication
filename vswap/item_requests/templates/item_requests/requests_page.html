@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}หน้าคำขอทั้งหมด{% endblock %}
+
+{% block content %}
+
+<div x-data="{ tab: '{{ default_tab|default:"left" }}' }" class="max-w-2xl mx-auto p-6">
+
+    <!-- Buttons -->
+    <div class="flex gap-3 mb-6">
+        <button 
+            @click="tab = 'left'"
+            :class="tab === 'left' 
+                ? 'bg-blue-600 text-white ring-2 ring-blue-300' 
+                : 'bg-gray-200 text-gray-700'"
+            class="flex-1 px-4 py-2 rounded-xl font-medium transition">
+            คำขอที่ฉันส่ง
+        </button>
+        
+        <button 
+            @click="tab = 'right'"
+            :class="tab === 'right' 
+                ? 'bg-blue-600 text-white ring-2 ring-blue-300' 
+                : 'bg-gray-200 text-gray-700'"
+            class="flex-1 px-4 py-2 rounded-xl font-medium transition">
+            คำขอที่ได้รับ
+        </button>
+    </div>
+    
+    <!-- Content -->
+    <div class="bg-gray-50 p-6 rounded-xl border">
+
+        <!-- LEFT TAB -->
+        <div x-show="tab === 'left'" >
+
+            <h1 class="text-2xl font-bold mb-6">คำขอที่ฉันส่ง</h1>
+
+            {% if my_requests and my_requests|length > 0 %}
+                <div class="space-y-4">
+
+                    {% for req in my_requests %}
+                        <div class="bg-white p-5 rounded-xl shadow border">
+                            <p class="text-lg">
+                                คุณได้ส่งคำขอสำหรับ  
+                                "<a href="{% url 'post_detail' pk=req.post.id %}" 
+                                   class="text-blue-600 hover:underline">
+                                    {{ req.post.title }}
+                                </a>"
+                            </p>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                สถานะ: <span class="font-semibold">{{ req.get_status_display }}</span>
+                            </p>
+
+                            {% if req.offered_product %}
+                                <p class="text-sm mt-2">
+                                    เสนอแลกด้วย:  
+                                    <a href="{% url 'post_detail' pk=req.offered_product.id %}" 
+                                       class="text-purple-600 hover:underline font-medium">
+                                        {{ req.offered_product.title }}
+                                    </a>
+                                </p>
+                            {% endif %}
+
+                            {% if req.status == 'accepted' %}
+                                <div class="mt-4 flex gap-3">   
+                                    <a href="{% url 'request_confirm' req.id  %}"
+                                       class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                        ติดต่อกลับ
+                                    </a>
+                                </div>  
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center mt-6">ยังไม่มีคำขอที่ส่ง</p>
+            {% endif %}
+        </div>
+
+
+        <!-- RIGHT TAB -->
+        <div x-show="tab === 'right'" >
+
+            <h1 class="text-2xl font-bold mb-6">คำขอที่ได้รับ</h1>
+
+            {% if incoming_requests and incoming_requests|length > 0 %}
+                <div class="space-y-4">
+
+                    {% for req in incoming_requests %}
+                        <div class="bg-white p-5 rounded-xl shadow border">
+
+                            <p class="text-lg">
+                                <span class="font-semibold">{{ req.requester.username }}</span>
+                                ส่งคำขอสำหรับ  
+                                "<a href="{% url 'post_detail' pk=req.post.id %}" 
+                                   class="text-blue-600 hover:underline">
+                                    {{ req.post.title }}
+                                </a>"
+                            </p>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                สถานะ: <span class="font-semibold">{{ req.get_status_display }}</span>
+                            </p>
+
+                            {% if req.offered_product %}
+                                <p class="text-sm mt-2">
+                                    เสนอแลกด้วย:  
+                                    <a href="{% url 'post_detail' pk=req.offered_product.id %}" 
+                                       class="text-purple-600 hover:underline font-medium">
+                                        {{ req.offered_product.title }}
+                                    </a>
+                                </p>
+                            {% endif %}
+
+                            {% if req.status == 'pending' %}
+                                <div class="mt-4 flex gap-3">
+                                    <a href="{% url 'respond_request' req.id 'accept' %}"
+                                       class="bg-green-500 hover:bg-green-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                        ยอมรับ
+                                    </a>
+
+                                    <a href="{% url 'respond_request' req.id 'reject' %}"
+                                       class="bg-red-500 hover:bg-red-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                        ปฏิเสธ
+                                    </a>
+                                </div>
+                            {% elif req.status == 'accepted' %}
+                                <div class="mt-4 flex gap-3">   
+                                    <a href="{% url 'request_confirm' req.id  %}"
+                                       class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                        ติดต่อกลับ
+                                    </a>
+                                    <a href="{% url 'cancel_request' req.id  %}"
+                                       class="bg-red-500 hover:bg-red-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                       ปฏิเสธ
+                                    </a>
+                                </div> 
+                            {% else %} 
+                                <div class="mt-4 flex gap-3"> 
+                                    <h2 class="bg-gray-500 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                       ปฏิเสธแล้ว
+                                    </h2>
+                                </div>
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center mt-6">ยังไม่มีคำขอที่ได้รับ</p>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

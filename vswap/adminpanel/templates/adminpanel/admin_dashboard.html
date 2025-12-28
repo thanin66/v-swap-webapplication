@@ -24,9 +24,9 @@
     <div class="bg-white shadow rounded-lg p-6 text-center">
         <h2 class="text-xl font-semibold mb-2">รายงาน (Report)</h2>
         <p class="mb-4">สถิติและข้อมูลสรุป</p>
-        <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+        <a href="{% url 'admin_reports' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
             ดูรายงาน
-        </button>
+        </a>
     </div>
 </div>
 {% endblock %}

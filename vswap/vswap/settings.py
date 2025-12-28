@@ -37,20 +37,23 @@ TAILWIND_APP_NAME = "theme"
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'accounts',
     'adminpanel',
     'posts',
     'vswap',
-    'requests',
+    'item_requests',
     'tailwind',
     'theme',
-
+    'channels',
+    'chat',
 ]
 
 
@@ -82,6 +85,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'vswap.wsgi.application'
+ASGI_APPLICATION = 'vswap.asgi.application'
+
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
@@ -142,3 +147,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}

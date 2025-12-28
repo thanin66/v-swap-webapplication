@@ -12,6 +12,9 @@ urlpatterns = [
 
     path("map/", views.map_view, name="map"), 
 
-    path("search/", views.search_view, name="search"),
+    path('search/', views.search_view, name='search'), # ต้องมี slash (/) ปิดท้าย
+    
+    path('search/results/', views.search_page, name='search_page'),
 
+    path('report/<int:pk>/', views.report_post, name='report_post')
 ]

@@ -17,6 +17,29 @@
         </button>
     </section>
 
+    {% if user.is_authenticated and matches_incoming %}
+        <section class="max-w-7xl mx-auto mb-10 mt-6">
+            <div class="flex items-center gap-2 mb-4">
+                <h2 class="text-2xl font-bold text-gray-800"> สินค้าที่แมทช์กับสิ่งที่คุณตามหา</h2>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full animate-pulse">จากมากสุดไปน้อยสุด</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for item in matches_incoming %}
+                    <div class="relative group ring-2 ring-blue-400 ring-offset-2 rounded-xl">
+                        <div class="bg-blue-500 text-white text-[10px] px-3 py-1 rounded-t-lg">
+                            ตรงกับความต้องการ: <strong>{{ item.my_post.swap_item_description|truncatechars:20 }}</strong>
+                        </div>
+                        
+                        {% with post=item.matched_post %}
+                            {% include "posts/post_card.html" %}
+                        {% endwith %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
     <!-- Posts Grid -->
     <section class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}ดำเนินการขั้นต่อไป{% endblock %}
+
+{% block content %}
+<main class="max-w-3xl mx-auto mt-10 px-4">
+
+    <section class="bg-white shadow-lg rounded-xl p-6">
+        <h2 class="text-2xl font-bold mb-4">ขั้นตอนถัดไป</h2>
+        <p class="text-gray-600 mb-6">
+            ทั้งสองฝ่ายได้ยืนยันการแลกเปลี่ยนเรียบร้อยแล้ว  
+            โปรดตรวจสอบข้อมูลและเลือกการดำเนินการต่อไป
+        </p>
+
+        <!-- ข้อมูลโพสต์ -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold mb-2">โพสต์หลัก</h3>
+            <p><strong>ชื่อสินค้า:</strong> {{ post.title }}</p>
+            <p><strong>รายละเอียด:</strong> {{ post.description }}</p>
+            <p><strong>เจ้าของ:</strong> {{ post.owner.username }}</p>
+
+            {% if post.image %}
+            <img src="{{ post.image.url }}" class="w-64 h-auto rounded-lg mt-3 shadow">
+            {% endif %}
+        </div>
+
+        <!-- ถ้ามีโพสต์ที่เสนอแลก -->
+        {% if offered_post %}
+        <div class="bg-blue-50 p-4 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold mb-2">สินค้าที่ใช้เสนอแลก</h3>
+            <p><strong>ชื่อสินค้า:</strong> {{ offered_post.title }}</p>
+            <p><strong>เจ้าของ:</strong> {{ offered_post.owner.username }}</p>
+
+            {% if offered_post.image %}
+            <img src="{{ offered_post.image.url }}" class="w-64 h-auto rounded-lg mt-3 shadow">
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ปุ่มเปลี่ยนสถานะโพสต์ -->
+        <div class="mt-6">
+            <h3 class="font-semibold text-lg mb-2">เปลี่ยนสถานะโพสต์</h3>
+
+            <form method="post" action="{% url 'update_multiple_post_status' %}">
+                {% csrf_token %}
+                <input type="hidden" name="post_ids" value="{{ post.id }},{{ offered_post.id }}">
+                
+                <label class="block font-medium mb-1">สถานะโพสต์</label>
+                <select name="status" class="border p-2 rounded w-full mb-3">
+                    <option value="completed">แลก/ซื้อขายเสร็จสิ้น</option>
+                    <option value="cancelled">ยกเลิก</option>
+                </select>
+
+                <button class="bg-green-600 text-white w-full py-2 rounded-lg hover:bg-green-700 transition">
+                    อัปเดตสถานะทั้งหมด
+                </button>
+            </form>
+        </div>
+    </section>
+
+</main>
+{% endblock %}

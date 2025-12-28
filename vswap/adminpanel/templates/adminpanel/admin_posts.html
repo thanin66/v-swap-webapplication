@@ -4,7 +4,8 @@
 
 {% block content %}
 
-<h1 class="flex justify-center text-3xl font-bold mb-6">จัดการโพสต์</h1>
+<h1 class="text-3xl flex justify-center font-bold mb-6">จัดการโพสต์</h1>
+
 <div class ="flex justify-center bg-white shadow rounded-lg ">
     <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
         <thead class="bg-gray-100">
@@ -22,9 +23,9 @@
                 <td class="px-4 py-2">{{ post.id }}</td>
                 <td class="px-4 py-2">{{ post.title }}</td>
                 <td class="px-4 py-2">
-                    {% if post.user and post.user.id %}
-                        <a href="{% url 'profile_by_id' post.user.id %}" class="text-indigo-600 hover:underline">
-                            {{ post.user.username }}
+                    {% if post.owner and post.owner.id %}
+                        <a href="{% url 'profile_by_id' post.owner.id %}" class="text-indigo-600 hover:underline">
+                            {{ post.owner.username }}
                         </a>
                     {% else %}
                         ผู้ใช้ไม่ทราบ
