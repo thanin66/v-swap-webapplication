@@ -3,89 +3,157 @@
 {% block title %}โพสต์ทั้งหมด | VSwap{% endblock %}
 
 {% block content %}
-<div class="bg-gray-100 min-h-screen p-6" x-data="{ open: false }" @open-post-modal.window="open = true">
 
-    <!-- Header Section -->
+<div class="bg-gray-100 min-h-screen p-6" x-data="{ open: false, tab: 'all' }" @open-post-modal.window="open = true">
     <section class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center">
         <h2 class="text-4xl font-extrabold text-gray-800 mb-4 md:mb-0">
             โพสต์ทั้งหมด
         </h2>
         <button 
             @click="open = true" 
-            class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
-            + สร้างโพสต์
+            class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-lg font-bold flex items-center gap-2">
+            สร้างโพสต์ใหม่
         </button>
     </section>
+<div class="bg-gray-100 min-h-screen p-6">
+
 
     {% if user.is_authenticated and matches_incoming %}
-        <section class="max-w-7xl mx-auto mb-10 mt-6">
+        <section class="max-w-7xl mx-auto mb-10 mt-6 bg-blue-50 border border-blue-200 p-4 rounded-xl">
             <div class="flex items-center gap-2 mb-4">
                 <h2 class="text-2xl font-bold text-gray-800"> สินค้าที่แมทช์กับสิ่งที่คุณตามหา</h2>
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full animate-pulse">จากมากสุดไปน้อยสุด</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full animate-pulse">AI Matching</span>
             </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {% for item in matches_incoming %}
-                    <div class="relative group ring-2 ring-blue-400 ring-offset-2 rounded-xl">
-                        <div class="bg-blue-500 text-white text-[10px] px-3 py-1 rounded-t-lg">
-                            ตรงกับความต้องการ: <strong>{{ item.my_post.swap_item_description|truncatechars:20 }}</strong>
-                        </div>
-                        
-                        {% with post=item.matched_post %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for match in matches_incoming %}
+                    {% with post=match.matched_post %}
+                        <div class="relative">
+                            <div class="absolute top-2 right-2 z-10 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+                                เข้ากัน {{ match.score}}%
+                            </div>
+                            
                             {% include "posts/post_card.html" %}
-                        {% endwith %}
-                    </div>
+                        </div>
+                    {% endwith %}
                 {% endfor %}
             </div>
         </section>
-        {% endif %}
+    {% endif %}
 
-    <!-- Posts Grid -->
-    <section class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {% for post in posts %}
+    <div class="max-w-7xl mx-auto">
+        <div class="flex space-x-2 border-b border-gray-300 mb-6 overflow-x-auto pb-1">
+            <button @click="tab = 'all'" 
+                    :class="tab==='all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                ทั้งหมด
+            </button>
+            <button @click="tab = 'swap'" 
+                    :class="tab==='swap' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-green-600'"
+                    class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                แลกของ
+            </button>
+            <button @click="tab = 'sale'" 
+                    :class="tab==='sale' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'"
+                    class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                ตลาดขายสิ่งของ
+            </button>
+            <button @click="tab = 'wishlist'" 
+                    :class="tab==='wishlist' ? 'border-pink-500 text-pink-600' : 'border-transparent text-gray-500 hover:text-pink-600'"
+                    class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                Wishlist (ตามหา)
+            </button>
+            <button @click="tab = 'donation'" 
+                    :class="tab==='donation' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-purple-600'"
+                    class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+                บริจาค
+            </button>
+        </div>
+
+        <div x-show="tab === 'all'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for post in sale_posts %} {% include "posts/post_card.html" %} {% endfor %}
+            {% for post in wishlist_posts %} {% include "posts/post_card.html" %} {% endfor %}
+            {% for post in swap_posts %} {% include "posts/post_card.html" %} {% endfor %}
+            {% for post in donation_posts %} {% include "posts/post_card.html" %} {% endfor %}
+            </div>
+
+        <div x-show="tab === 'swap'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in swap_posts %}
                 {% include "posts/post_card.html" %}
             {% empty %}
-                <div class="col-span-full text-center text-gray-500 py-10">
-                    ยังไม่มีโพสต์ในขณะนี้
-                </div>
+                <p class="col-span-full text-center text-gray-500 py-10">ไม่มีรายการแลกเปลี่ยน</p>
             {% endfor %}
         </div>
-    </section>
 
-    <!-- Modal เลือกประเภทโพสต์ -->
-    <div 
-        x-show="open"
-        x-transition
-        class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
-        style="display: none;"
-    >
-        <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
-            <h2 class="text-xl font-semibold mb-4 text-center">เลือกประเภทโพสต์</h2>
+        <div x-show="tab === 'sale'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in sale_posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 py-10">ไม่มีสินค้าวางขาย</p>
+            {% endfor %}
+        </div>
 
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button 
-                    @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
-                    class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                    Swap
-                </button>
-                <button 
-                    @click="window.location.href='{% url 'post_create' post_type='buy_sell' %}'" 
-                    class="flex-1 px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
-                    Buy & Sell
-                </button>
-                <button 
-                    @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
-                    class="flex-1 px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">
-                    Donation
+        <div x-show="tab === 'wishlist'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in wishlist_posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 py-10">ไม่มีรายการตามหา</p>
+            {% endfor %}
+        </div>
+
+        <div x-show="tab === 'donation'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in donation_posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 py-10">ไม่มีรายการบริจาค</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div x-show="open" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+         x-transition.opacity
+         style="display: none;">
+        
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all" @click.away="open = false">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">เลือกประเภทโพสต์</h2>
+                <button @click="open=false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <div class="mt-6 text-right">
-                <button 
-                    @click="open=false" 
-                    class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-                    ปิด
+            <div class="grid grid-cols-1 gap-3">
+                <button @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-green-50 hover:border-green-300 transition">
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">Swap (แลกของ)</h3>
+                            <p class="text-sm text-gray-500">แลกเปลี่ยนสิ่งของที่คุณมีกับคนอื่น</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='sale' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-blue-50 hover:border-blue-300 transition">
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">ลงขายสินค้า (Sell)</h3>
+                            <p class="text-sm text-gray-500">วางขายสินค้าเพื่อรับเงิน</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='wishlist' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-pink-50 hover:border-pink-300 transition">
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">ประกาศตามหา (Wishlist)</h3>
+                            <p class="text-sm text-gray-500">โพสต์หาสิ่งที่คุณต้องการซื้อ</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-purple-50 hover:border-purple-300 transition">
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">บริจาค (Donation)</h3>
+                            <p class="text-sm text-gray-500">ส่งต่อสิ่งของให้ผู้อื่นฟรี</p>
+                        </div>
                 </button>
             </div>
         </div>

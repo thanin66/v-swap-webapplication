@@ -7,10 +7,22 @@ from posts.models import Post
 from .models import Request
 from .forms import SwapRequestForm, SaleRequestForm, DonateRequestForm
 
+from posts.models import Post, Swap, BuySell, Donation
+
 @login_required
 def send_request(request, post_id):
+    # 1. ดึง Post แม่มาก่อน
     target_post = get_object_or_404(Post, id=post_id)
     post_type = target_post.post_type
+
+    # 2. [สำคัญ] แปลงร่างจาก Post ธรรมดา ให้เป็นลูก (Swap, BuySell, Donation) 
+    # เพื่อให้ Template เรียกใช้ .is_buying หรือ .price ได้
+    if hasattr(target_post, 'buysell'):
+        target_post = target_post.buysell
+    elif hasattr(target_post, 'swap'):
+        target_post = target_post.swap
+    elif hasattr(target_post, 'donation'):
+        target_post = target_post.donation
 
     # ตรวจสอบว่าผู้ใช้กำลังส่งคำขอหาโพสต์ของตัวเองหรือไม่
     if request.user == target_post.owner:
@@ -26,41 +38,57 @@ def send_request(request, post_id):
     if request.method == 'POST':
         if post_type == 'swap':
             form = SwapRequestForm(request.POST, user=request.user)
+            # เราจะเช็คความเป็นเจ้าของหลังจาก form.is_valid() แล้วเท่านั้น
         elif post_type == 'buy_sell':
             form = SaleRequestForm(request.POST)
-        elif post_type == 'donate':
+        elif post_type == 'donate': # ใน DB คุณใช้ 'donate' แต่ Form อาจจะชื่อ DonationRequestForm เช็คให้ตรงกันนะครับ
             form = DonateRequestForm(request.POST)
         else:
             messages.error(request, "ไม่สามารถสร้างคำขอสำหรับโพสต์ประเภทนี้ได้")
             return redirect('post_detail', pk=target_post.id)
 
         if form.is_valid():
-            new_request = Request.objects.create(
-                post=target_post,
+            # ดึงข้อมูลที่ Clean แล้ว
+            message = form.cleaned_data.get('message', '')
+            amount = form.cleaned_data.get('amount', None)
+            offered_product = form.cleaned_data.get('offered_product', None)
+            reason = form.cleaned_data.get('reason', '')
+
+            # [แก้ไข Bug] เช็คเจ้าของสินค้าแลกเปลี่ยนตรงนี้
+            if post_type == 'swap':
+                if offered_product and offered_product.owner != request.user:
+                    return HttpResponseForbidden("คุณไม่สามารถใช้ของคนอื่นมาแลกได้")
+
+            # บันทึกคำขอ
+            Request.objects.create(
+                post=target_post, # Django จะรู้เองว่าต้องลิงก์กับตัวแม่
                 request_type=post_type,
                 requester=request.user,
-                message=form.cleaned_data.get('message', ''),
-                amount=form.cleaned_data.get('amount', None),
-                offered_product=form.cleaned_data.get('offered_product', None),
-                reason=form.cleaned_data.get('reason', '')
+                message=message,
+                amount=amount,
+                offered_product=offered_product,
+                reason=reason
             )
+            
             messages.success(request, "คำขอของคุณถูกส่งแล้ว 🎉")
             return redirect('post_detail', pk=target_post.id)
+            
     # แสดงฟอร์มคำขอ (GET request)
     else:
         if post_type == 'swap':
             form = SwapRequestForm(user=request.user)
         elif post_type == 'buy_sell':
             form = SaleRequestForm()
-        elif post_type == 'donate':
+        elif post_type == 'donate': # เช็คค่าใน DB ว่าเป็น 'donate' หรือ 'donation'
             form = DonateRequestForm()
         else:
             messages.error(request, "ไม่สามารถสร้างคำขอสำหรับโพสต์ประเภทนี้ได้")
             return redirect('post_detail', pk=target_post.id)
 
-    return render(request, 'item_requests/request_form.html', {'form': form, 'post': target_post})
-
-
+    return render(request, 'item_requests/request_form.html', {
+        'form': form, 
+        'post': target_post # ส่งตัวที่แปลงร่างแล้วไป
+    })
 
 @login_required
 def respond_request(request, request_id, action):
@@ -270,14 +298,19 @@ def next_step(request, request_id):
 
 @login_required
 def update_multiple_post_status(request):
-    if request.method == 'POST':
-        status = request.POST.get('status')
-        post_ids = request.POST.get('post_ids', '') 
-        ids = [int(pk) for pk in post_ids.split(',') if pk.isdigit()]
+    if request.method == "POST":
+        post_ids = request.POST.get("post_ids", "").split(",")
+        status = request.POST.get("status")
+        
+        # กรองเฉพาะ Post ที่ User คนนี้เป็นเจ้าของจริงๆ เท่านั้น
+        posts = Post.objects.filter(id__in=post_ids, owner=request.user)
+        
+        if not posts.exists():
+             messages.error(request, "คุณไม่มีสิทธิ์แก้ไขสถานะโพสต์เหล่านี้")
+             return redirect("home")
 
-        for pk in ids:
-            post = get_object_or_404(Post, id=pk)
-            post.status = status
-            post.save()
-
-    return redirect('home')
+        # Update สถานะ
+        posts.update(status=status)
+        
+        messages.success(request, "อัปเดตสถานะเรียบร้อยแล้ว")
+        return redirect("home") # หรือ path ที่เหมาะสม

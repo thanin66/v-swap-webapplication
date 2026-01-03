@@ -5,87 +5,113 @@
 {% block content %}
 <div x-data="{ open: false }" class="bg-gray-100 min-h-screen">
 
-    <div class="bg-gray-100 min-h-screen">
+    <section class="bg-blue-500 text-white py-20">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
+                ยินดีต้อนรับสู่ VSwap
+            </h1>
+            <p class="text-lg md:text-xl opacity-90 mb-6">
+                ระบบแลกเปลี่ยน ซื้อขาย และบริจาคของผ่านชุมชนออนไลน์
+            </p>
 
-        <!-- Hero Section -->
-        <section class="bg-blue-500 text-white py-20">
-            <div class="max-w-7xl mx-auto px-6 text-center">
-                <h1 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">
-                    ยินดีต้อนรับสู่ VSwap
-                </h1>
-                <p class="text-lg md:text-xl opacity-90 mb-6">
-                    ระบบแลกเปลี่ยน ซื้อขาย และบริจาคของผ่านชุมชนออนไลน์
-                </p>
-
-                <div class="flex justify-center gap-4 flex-wrap">
-                    <a href="{% url 'post_list' %}" 
-                    class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-100 transition">
-                        ดูโพสต์ทั้งหมด
-                    </a>
-                    <button 
-                        @click="open = true" 
-                        class="px-6 py-3 bg-yellow-400 text-blue-900 font-semibold rounded-xl hover:bg-yellow-300 transition">
-                        + สร้างโพสต์
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Posts Section -->
-        <section class="py-8 bg-gray-50">
-            <div class="max-w-7xl mx-auto px-6">
-
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">โพสต์ล่าสุด</h2>
-
-                    <a href="{% url 'post_list' %}" class="text-blue-600 font-semibold hover:underline">
-                        ดูทั้งหมด →
-                    </a>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {% for post in posts %}
-                        {% include "posts/post_card.html" %}
-                    {% empty %}
-                        <div class="col-span-full text-center text-gray-500">
-                            ยังไม่มีโพสต์ในขณะนี้
-                        </div>
-                    {% endfor %}
-                </div>
-
-            </div>
-        </section>
-
-        <div 
-            x-show="open" 
-            x-transition 
-            class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
-            @click.away="open = false">
-            <div class="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold mb-4 text-center">เลือกประเภทโพสต์</h2>
-                <div class="space-y-3">
-                    <button @click="window.location.href='{% url 'post_create' post_type='swap' %}'"
-                            class="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                        Swap
-                    </button>
-                    <button @click="window.location.href='{% url 'post_create' post_type='buy_sell' %}'"
-                            class="w-full px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
-                        Buy & Sell
-                    </button>
-                    <button @click="window.location.href='{% url 'post_create' post_type='donation' %}'"
-                            class="w-full px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">
-                        Donation
-                    </button>
-                </div>
-                <div class="mt-6 text-right">
-                    <button @click="open=false" 
-                            class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-                        ปิด
-                    </button>
-                </div>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <a href="{% url 'post_list' %}" 
+                class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-100 transition">
+                    ดูโพสต์ทั้งหมด
+                </a>
+                <button 
+                    @click="open = true" 
+                    class="px-6 py-3 bg-yellow-400 text-blue-900 font-semibold rounded-xl hover:bg-yellow-300 transition">
+                    + สร้างโพสต์
+                </button>
             </div>
         </div>
+    </section>
 
+    <section class="py-8 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">โพสต์ล่าสุด</h2>
+
+                <a href="{% url 'post_list' %}" class="text-blue-600 font-semibold hover:underline">
+                    ดูทั้งหมด →
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for post in posts %}
+                    {% include "posts/post_card.html" %}
+                {% empty %}
+                    <div class="col-span-full text-center text-gray-500">
+                        ยังไม่มีโพสต์ในขณะนี้
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+    <div x-show="open" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+         x-transition.opacity
+         style="display: none;">
+        
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all" @click.away="open = false">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">เลือกประเภทโพสต์</h2>
+                <button @click="open=false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3">
+                <button @click="window.location.href='{% url 'post_create' post_type='swap' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-green-50 hover:border-green-300 transition">
+                        <div class="flex-shrink-0 mr-4 text-green-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">Swap (แลกของ)</h3>
+                            <p class="text-sm text-gray-500">แลกเปลี่ยนสิ่งของที่คุณมีกับคนอื่น</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='sale' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-blue-50 hover:border-blue-300 transition">
+                        <div class="flex-shrink-0 mr-4 text-blue-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">ลงขายสินค้า (Sell)</h3>
+                            <p class="text-sm text-gray-500">วางขายสินค้าเพื่อรับเงิน</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='wishlist' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-pink-50 hover:border-pink-300 transition">
+                        <div class="flex-shrink-0 mr-4 text-pink-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">ประกาศตามหา (Wishlist)</h3>
+                            <p class="text-sm text-gray-500">โพสต์หาสิ่งที่คุณต้องการซื้อ</p>
+                        </div>
+                </button>
+
+                <button @click="window.location.href='{% url 'post_create' post_type='donation' %}'" 
+                        class="group flex items-center p-4 border rounded-xl hover:bg-purple-50 hover:border-purple-300 transition">
+                        <div class="flex-shrink-0 mr-4 text-purple-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-gray-800">บริจาค (Donation)</h3>
+                            <p class="text-sm text-gray-500">ส่งต่อสิ่งของให้ผู้อื่นฟรี</p>
+                        </div>
+                </button>
+            </div>
+        </div>
     </div>
+
 </div>
 {% endblock %}

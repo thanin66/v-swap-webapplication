@@ -1,21 +1,21 @@
-<!DOCTYPE html>
-<html lang="en" x-data>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm delete Post</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">    
-    <script src="{% static 'js/alpine.min.js' %}"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Confirm Delete Post</h1>
-        <p>Are you sure you want to delete the post "{{ post.title }}"?</p>
-        <form method="POST" action="{% url 'post_delete' post.id %}">
+{% extends "base.html" %}
+{% block title %}ยืนยันการลบโพสต์ | VSwap{% endblock %}
+{% block content %}
+<div class="bg-gray-100 min-h-screen p-6 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">ยืนยันการลบโพสต์</h2>
+        <p class="mb-6 text-gray-600">คุณแน่ใจหรือว่าต้องการลบโพสต์ "<span class="font-semibold">{{ post.title }}</span>"? การดำเนินการนี้ไม่สามารถย้อนกลับได้.</p>
+        
+        <form method="post" action="{% url 'post_delete' post.id %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Delete</button>
-            <a href="{% url 'post_list' %}" class="btn btn-secondary">Cancel</a>
+            <div class="flex justify-between">
+                <a href="{% url 'post_detail' post.id %}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                    ยกเลิก
+                </a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    ลบโพสต์
+                </button>
+            </div>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

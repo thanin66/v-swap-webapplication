@@ -3,13 +3,6 @@
 {% block title %}{% endblock %}
 
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post detail</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
 
 <style>
     .container {
@@ -83,52 +76,42 @@
     }
 </style>
 
-<div class="container">
-    <h1>ส่งคำขอสำหรับ: {{ post.title }}</h1>
-    <p class="post-type">ประเภท: <strong>{{ post.get_post_type_display }}</strong></p>
-        {% if post.image %}
-            <div class="form-group">
-                <label>รูปภาพของโพสต์:</label>
-                <img src="{{ post.image.url }}" alt="{{ post.title }}"
-                    class="rounded-lg shadow-md w-full object-cover hover:scale-105 transition-transform duration-200 mb-4">
-            </div>
+    <div class="container mx-auto p-6 max-w-lg bg-white rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">ส่งคำขอสำหรับ: {{ post.title }}</h1>
+        {%if post.image %}
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-64 object-cover rounded-lg mb-4">
         {% endif %}
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            {% if post.post_type == 'buy_sell' %}
+                {% if post.is_buying %}
+                    <p class="post-type text-pink-600">
+                        ประเภทคำขอ: <strong>เสนอขาย (Wishlist)</strong>
+                        <br><span class="text-sm text-gray-500">ผู้โพสต์ต้องการซื้อ คุณกำลังเสนอขาย</span>
+                    </p>
+                {% else %}
+                    <p class="post-type text-green-600">
+                        ประเภทคำขอ: <strong>ขอซื้อสินค้า</strong>
+                        <br><span class="text-sm text-gray-500">ผู้โพสต์ต้องการขาย คุณกำลังขอซื้อ</span>
+                    </p>
+                {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
+            {% elif post.post_type == 'swap' %}
+                <p class="post-type text-blue-600">ประเภทคำขอ: <strong>แลกเปลี่ยนของ</strong></p>
 
-        {% if post.post_type == 'swap' %}
-            <div class="form-group">
-                {{ form.message.label_tag }}
-                {{ form.message }}
-            </div>
-            <div class="form-group">
-                {{ form.offered_product.label_tag }}
-                {{ form.offered_product }}
-            </div>
+            {% elif post.post_type == 'donate' or post.post_type == 'donation' %}
+                <p class="post-type text-purple-600">ประเภทคำขอ: <strong>เสนอรับ</strong></p>
+            {% endif %}
+        </div>
 
-        {% elif post.post_type == 'sale' %}
-            <div class="form-group">
-                {{ form.message.label_tag }}
-                {{ form.message }}
-            </div>
-            <div class="form-group">
-                {{ form.amount.label_tag }}
-                {{ form.amount }}
-            </div>
-
-        {% elif post.post_type == 'donate' %}
-            <div class="form-group">
-                {{ form.reason.label_tag }}
-                {{ form.reason }}
-            </div>
-
-        {% else %}
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
             {{ form.as_p }}
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary">ส่งคำขอ</button>
-    </form>
+            
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                ยืนยันการส่งคำขอ
+            </button>
+        </form>
+    </div>
 
     <div class="button-group">
         {% if post.post_type == 'swap' %}

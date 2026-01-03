@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}{{ user.username }} Profile{% endblock %}
+{% block title %}{{ user.username }} Profile | VSwap{% endblock %}
 
 {% block content %}
-<main class="max-w-7xl mx-auto mt-8 px-6">
+<main class="max-w-7xl mx-auto mt-8 px-6 pb-20">
 
-  <!-- User Info Section -->
   <section class="bg-white shadow rounded-xl p-6 flex items-center space-x-6 mb-8">
       {% if user.userprofile and user.userprofile.profile_picture %}
           <img src="{{ user.userprofile.profile_picture.url }}"
               class="w-24 h-24 rounded-full object-cover border">
+      {% else %}
+          <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-3xl font-bold">
+              {{ user.username|slice:":1"|upper }}
+          </div>
       {% endif %}
       <div>
           <h2 class="text-2xl font-bold">{{ user.username }}</h2>
           <p class="text-gray-600">{{ user.email }}</p>
           <p class="text-gray-500">Joined: {{ user.date_joined|date:"M d, Y" }}</p>
 
-          <!-- แก้ไขเฉพาะเจ้าของโปรไฟล์ -->
           {% if request.user == user %}
               <a href="{% url 'update_profile' %}" class="mt-2 inline-block text-indigo-600 hover:underline text-sm">
                   Edit Profile
@@ -25,48 +27,95 @@
       </div>
   </section>
 
-  <!-- Requests Section -->
   <section class="mb-8">
     {% if request.user == user %}
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-3xl font-bold">คำขอ</h2>
-        <a href="{% url 'request_page' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">
-          ดูคำขอ
+        <a href="{% url 'request_page' %}" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 font-semibold shadow-md transition">
+          ดูคำขอทั้งหมด
         </a>
+      </div>
     {% else %}
-        <a href="{% url 'chat_room' user.id %}" class="bg-blue-500 text-white px-4 py-2 rounded">
+      <div class="flex justify-end mb-4">
+        <a href="{% url 'chat_room' user.id %}" class="bg-blue-500 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-600 transition shadow">
           Message {{ user.username }}
         </a>
+      </div>
     {% endif %}
-    </div>
   </section>
 
-  <!-- Posts Section -->
-  <section x-data="{ tab: 'all' }" class="mb-8">
-    <div class="flex space-x-4 border-b mb-6">
-      {% for tab_type in tabs %}
-        <button 
-          @click="tab = '{{ tab_type }}'"
-          :class="tab === '{{ tab_type }}' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'"
-          class="pb-2 font-semibold">
-          {{ tab_type|capfirst }}
+  <section x-data="{ tab: 'all' }" class="min-h-[400px]">
+    
+    <div class="flex space-x-2 border-b border-gray-300 mb-6 overflow-x-auto pb-1">
+        <button @click="tab = 'all'" 
+                :class="tab==='all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+            ทั้งหมด
         </button>
-      {% endfor %}
+        <button @click="tab = 'swap'" 
+                :class="tab==='swap' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-green-600'"
+                class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+            แลกของ
+        </button>
+        <button @click="tab = 'sale'" 
+                :class="tab==='sale' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'"
+                class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+            ตลาดซื้อขาย
+        </button>
+        <button @click="tab = 'wishlist'" 
+                :class="tab==='wishlist' ? 'border-pink-500 text-pink-600' : 'border-transparent text-gray-500 hover:text-pink-600'"
+                class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+            Wishlist (ตามหา)
+        </button>
+        <button @click="tab = 'donation'" 
+                :class="tab==='donation' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-purple-600'"
+                class="px-4 py-3 border-b-2 font-medium whitespace-nowrap transition">
+            บริจาค
+        </button>
     </div>
 
-    {% for tab_type in tabs %}
-      <div x-show="tab === '{{ tab_type }}'">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {% for post in posts %}
-            {% if tab_type == 'all' or post.post_type == tab_type %}
-              {% include "posts/post_card.html" %}
-            {% endif %}
-          {% empty %}
-            <p>ไม่มีโพสต์ประเภท {{ tab_type|capfirst }}</p>
-          {% endfor %}
+    <div class="relative">
+        <div x-show="tab === 'all'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for post in posts %}
+                {% include "posts/post_card.html" %}
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 py-10">ยังไม่มีโพสต์ใดๆ</p>
+            {% endfor %}
         </div>
-      </div>
-    {% endfor %}
+
+        <div x-show="tab === 'swap'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in posts %}
+                {% if post.post_type == 'swap' %}
+                    {% include "posts/post_card.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div x-show="tab === 'sale'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in posts %}
+                {% if post.post_type == 'buy_sell' and not post.is_buying %}
+                    {% include "posts/post_card.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div x-show="tab === 'wishlist'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in posts %}
+                {% if post.post_type == 'buy_sell' and post.is_buying %}
+                    {% include "posts/post_card.html" %} 
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div x-show="tab === 'donation'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="display: none;">
+            {% for post in posts %}
+                {% if post.post_type == 'donate' or post.post_type == 'donation' %}
+                    {% include "posts/post_card.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
   </section>
   
 </main>

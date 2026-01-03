@@ -1,13 +1,16 @@
-# posts/matching.py
 from .models import Post, Swap, BuySell, Donation
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 1. โหลด Model เตรียมไว้ (โหลดครั้งเดียวตอนรัน Server)
-print("Loading AI Model... (Please wait)")
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-print("AI Model Loaded!")
+model = None 
+
+def get_model():
+    global model
+    if model is None:
+        print("Loading AI Model...")
+        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+    return model
 
 def compute_similarity(source_text, candidates_list, threshold=0.35):
     """
@@ -17,15 +20,12 @@ def compute_similarity(source_text, candidates_list, threshold=0.35):
     if not candidates_list:
         return []
 
-    # แปลง Source (ความต้องการ) เป็น Vector
-    source_emb = model.encode([source_text])
+    ai_model = get_model() # เรียกผ่านฟังก์ชันแทน
+    source_emb = ai_model.encode([source_text])
 
-    # แปลง Candidates (ของที่มีทั้งหมด) เป็น Vector
-    # *ข้อควรระวัง: ตรงนี้จะช้าถ้าของเยอะ แต่ทำเพื่อ Test Logic ถือว่าโอเคครับ
     candidate_texts = [c['text'] for c in candidates_list]
-    candidate_embs = model.encode(candidate_texts)
+    candidate_embs = ai_model.encode(candidate_texts)
 
-    # คำนวณความเหมือน
     scores = cosine_similarity(source_emb, candidate_embs)[0]
 
     matched = []
@@ -37,10 +37,8 @@ def compute_similarity(source_text, candidates_list, threshold=0.35):
                 'score': round(score * 100, 2)
             })
     
-    # เรียงคะแนนมากไปน้อย
     matched.sort(key=lambda x: x['score'], reverse=True)
     
-    # ส่งคืนแค่ 5 อันดับแรกเพื่อความสวยงาม
     return matched[:5]
 
 def find_matches_for_user(user):

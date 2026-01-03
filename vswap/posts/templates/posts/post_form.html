@@ -46,7 +46,17 @@
                     <p class="text-red-500 text-sm">{{ error }}</p>
                 {% endfor %}
             </div>
-
+            {% if form.price %}
+            <div>
+                <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.price.label }}
+                </label>
+                {{ form.price }}
+                {% if form.price.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.price.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
             {% if form.swap_item_category %}
             <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-gray-700 mb-2">สิ่งที่ต้องการแลกเปลี่ยน</h3>
@@ -106,8 +116,8 @@ function postForm() {
         lng: {{ post.leaflet_lng|default:"null" }},
         _marker: null,
         init() {
-            let defaultLat = this.lat ?? 13.736717;
-            let defaultLng = this.lng ?? 100.523186;
+            let defaultLat = this.lat || 13.7563; 
+            let defaultLng = this.lng || 100.5018;
 
             var map = L.map('map').setView([defaultLat, defaultLng], 6);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -130,6 +130,16 @@ function twoWayPosition(requestId) {
             const res = await fetch(`/requests/api/map/status/${requestId}/`);
             const data = await res.json();
 
+            if (data.lat && data.lng && (data.lat !== this.confirmedLat || data.lng !== this.confirmedLng)) {
+                    // อัปเดตตัวแปรเราให้ตรงกับ Server
+                    this.confirmedLat = data.lat;
+                    this.confirmedLng = data.lng;
+                    // ย้ายหมุดในแผนที่ไปที่ใหม่
+                    this.markerMyself.setLatLng([data.lat, data.lng]); 
+                    this.map.setView([data.lat, data.lng]);
+                    alert("อีกฝ่ายได้เปลี่ยนแปลงตำแหน่งจุดนัดพบ!");
+                }
+                
             this.myConfirmed = data.my_confirmed;
             this.otherConfirmed = data.other_confirmed;
             this.done = this.myConfirmed && this.otherConfirmed;
