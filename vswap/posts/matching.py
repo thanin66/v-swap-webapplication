@@ -42,33 +42,57 @@ def compute_similarity(source_text, candidates_list, threshold=0.35):
     return matched[:5]
 
 def find_matches_for_user(user):
-    """
-    หัวใจหลัก: หาของที่ User นี้อยากได้ (My Demand -> System Supply)
-    """
     matches_found = []
     
-    # --- STEP 1: เตรียม Supply (ของที่มีในระบบ) ---
-    # ดึงโพสต์ของคนอื่นทั้งหมด ที่สถานะ available
+    # --- STEP 1: หา "ของที่มีคนปล่อย" (Supply) ---
+    # เราหาคนอื่นที่มีของ (ไม่เอาของตัวเอง)
     other_posts = Post.objects.filter(status='available').exclude(owner=user)
     
     supply_candidates = []
     for p in other_posts:
-        # กรอง: ไม่เอา "ประกาศรับซื้อ" ของคนอื่นมาเป็น Supply (เพราะเขาไม่มีของให้เรา)
+        # -----------------------------------------------------------
+        # [จุดที่ต้องแก้ไข] แปลง Parent (Post) เป็น Child (BuySell/Swap/Donation)
+        # เพื่อให้ได้ field ที่ครบถ้วน เช่น price, condition
+        # -----------------------------------------------------------
+        real_post_obj = p # ค่าเริ่มต้น
+        
         if p.post_type == 'buy_sell':
-            # เช็คว่าเป็น BuySell object จริงๆ
-            try:
-                bs = p.buysell 
-                if bs.is_buying: # ถ้าคนอื่นประกาศรับซื้อ ข้ามไป
+            # ถ้าเป็น BuySell ให้ลองดึง object ลูกมา
+            if hasattr(p, 'buysell'):
+                real_post_obj = p.buysell
+                
+                # กรองเพิ่มเติม: ถ้าคนอื่นตั้ง "รับซื้อ" (is_buying=True) 
+                # แปลว่าเขาไม่มีของให้เรา (เขาอยากได้ของ) -> ข้ามไปเลย ไม่นับเป็น Supply
+                if real_post_obj.is_buying:
                     continue
-            except:
+            else:
+                # กรณีข้อมูลผิดพลาด (มี Post แต่หาตารางลูกไม่เจอ) ให้ข้าม
                 continue
 
-        # จัดเตรียม Text สำหรับ Supply (เอา Title + Description)
-        text_desc = f"{p.title} {p.description}"
+        elif p.post_type == 'swap':
+            if hasattr(p, 'swap'):
+                real_post_obj = p.swap
+            else:
+                continue
+
+        elif p.post_type == 'donate':
+            if hasattr(p, 'donation'):
+                real_post_obj = p.donation
+            else:
+                continue
+        
+        # -----------------------------------------------------------
+        
+        # สร้าง text สำหรับทำ embedding
+        # ใช้ real_post_obj แทน p เพื่อความชัวร์ (แม้ title/description จะอยู่ที่แม่ก็ตาม)
+        text_desc = f"{real_post_obj.title} {real_post_obj.description}"
+        
+        # เก็บลง list โดยใช้ object ที่แปลงร่างเป็นลูกแล้ว (real_post_obj)
         supply_candidates.append({
-            'post': p,
+            'post': real_post_obj,  # <--- ส่งตัวลูกที่มี price ไปให้ Template
             'text': text_desc
         })
+        
 
     if not supply_candidates:
         return [], [] # ถ้าไม่มีของในระบบเลย ก็จบข่าว
