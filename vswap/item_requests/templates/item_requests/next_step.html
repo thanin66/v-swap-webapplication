@@ -1,62 +1,170 @@
 {% extends "base.html" %}
 
-{% block title %}ดำเนินการขั้นต่อไป{% endblock %}
+{% block title %}ยืนยันการแลกเปลี่ยนเสร็จสิ้น{% endblock %}
 
 {% block content %}
-<main class="max-w-3xl mx-auto mt-10 px-4">
+<main class="max-w-3xl mx-auto mt-10 px-4" 
+      x-data="dealConfirmation({{ request_obj.id }})" 
+      x-init="startPolling()">
 
-    <section class="bg-white shadow-lg rounded-xl p-6">
-        <h2 class="text-2xl font-bold mb-4">ขั้นตอนถัดไป</h2>
-        <p class="text-gray-600 mb-6">
-            ทั้งสองฝ่ายได้ยืนยันการแลกเปลี่ยนเรียบร้อยแล้ว  
-            โปรดตรวจสอบข้อมูลและเลือกการดำเนินการต่อไป
-        </p>
-
-        <!-- ข้อมูลโพสต์ -->
-        <div class="bg-gray-50 p-4 rounded-lg mb-6">
-            <h3 class="text-lg font-semibold mb-2">โพสต์หลัก</h3>
-            <p><strong>ชื่อสินค้า:</strong> {{ post.title }}</p>
-            <p><strong>รายละเอียด:</strong> {{ post.description }}</p>
-            <p><strong>เจ้าของ:</strong> {{ post.owner.username }}</p>
-
-            {% if post.image %}
-            <img src="{{ post.image.url }}" class="w-64 h-auto rounded-lg mt-3 shadow">
-            {% endif %}
+    <section class="bg-white shadow-lg rounded-xl p-6 relative overflow-hidden">
+        
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">ยืนยันการรับ-ส่งของ</h2>
+            <p class="text-gray-600">
+                เมื่อท่านได้รับสินค้าหรือทำการแลกเปลี่ยนเสร็จสิ้นแล้ว <br>
+                โปรดกดยืนยันทั้งสองฝ่ายเพื่อปิดงาน
+            </p>
         </div>
 
-        <!-- ถ้ามีโพสต์ที่เสนอแลก -->
-        {% if offered_post %}
-        <div class="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 class="text-lg font-semibold mb-2">สินค้าที่ใช้เสนอแลก</h3>
-            <p><strong>ชื่อสินค้า:</strong> {{ offered_post.title }}</p>
-            <p><strong>เจ้าของ:</strong> {{ offered_post.owner.username }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="p-4 rounded-xl border-2 text-center transition-all duration-300"
+                 :class="myConfirmed ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50'">
+                <p class="text-sm text-gray-500 mb-1">สถานะของคุณ</p>
+                <div class="text-xl font-bold" :class="myConfirmed ? 'text-green-600' : 'text-gray-400'">
+                    <span x-show="myConfirmed">✅ ยืนยันเรียบร้อย</span>
+                    <span x-show="!myConfirmed">⏳ รอยืนยัน</span>
+                </div>
+            </div>
 
-            {% if offered_post.image %}
-            <img src="{{ offered_post.image.url }}" class="w-64 h-auto rounded-lg mt-3 shadow">
-            {% endif %}
+            <div class="p-4 rounded-xl border-2 text-center transition-all duration-300"
+                 :class="otherConfirmed ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50'">
+                <p class="text-sm text-gray-500 mb-1">สถานะฝ่ายตรงข้าม</p>
+                <div class="text-xl font-bold" :class="otherConfirmed ? 'text-green-600' : 'text-gray-400'">
+                    <span x-show="otherConfirmed">✅ ยืนยันเรียบร้อย</span>
+                    <span x-show="!otherConfirmed">⏳ รอยืนยัน</span>
+                </div>
+            </div>
         </div>
-        {% endif %}
 
-        <!-- ปุ่มเปลี่ยนสถานะโพสต์ -->
+        <div class="bg-gray-50 p-6 rounded-xl border mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex-1 text-center md:text-left">
+                <div class="font-semibold text-gray-700">สินค้าหลัก</div>
+                <div class="text-lg font-bold">{{ post.title }}</div>
+                <div class="text-sm text-gray-500">เจ้าของ: {{ post.owner.username }}</div>
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" class="w-24 h-24 object-cover rounded-lg mt-2 mx-auto md:mx-0 shadow-sm">
+                {% endif %}
+            </div>
+
+            <div class="text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+            </div>
+
+            <div class="flex-1 text-center md:text-right">
+                {% if offered_post %}
+                    <div class="font-semibold text-gray-700">ข้อเสนอแลก</div>
+                    <div class="text-lg font-bold">{{ offered_post.title }}</div>
+                    <div class="text-sm text-gray-500">เจ้าของ: {{ offered_post.owner.username }}</div>
+                    {% if offered_post.image %}
+                        <img src="{{ offered_post.image.url }}" class="w-24 h-24 object-cover rounded-lg mt-2 mx-auto md:ml-auto shadow-sm">
+                    {% endif %}
+                {% else %}
+                    <div class="font-semibold text-gray-700">ข้อเสนอ</div>
+                     <div class="text-lg font-bold">
+                        {% if request_obj.amount %}
+                            {{ request_obj.amount }} บาท
+                        {% else %}
+                            -
+                        {% endif %}
+                     </div>
+                {% endif %}
+            </div>
+        </div>
+
         <div class="mt-6">
-            <h3 class="font-semibold text-lg mb-2">เปลี่ยนสถานะโพสต์</h3>
-
-            <form method="post" action="{% url 'update_multiple_post_status' %}">
-                {% csrf_token %}
-                <input type="hidden" name="post_ids" value="{{ post.id }},{{ offered_post.id }}">
-                
-                <label class="block font-medium mb-1">สถานะโพสต์</label>
-                <select name="status" class="border p-2 rounded w-full mb-3">
-                    <option value="completed">แลก/ซื้อขายเสร็จสิ้น</option>
-                    <option value="cancelled">ยกเลิก</option>
-                </select>
-
-                <button class="bg-green-600 text-white w-full py-2 rounded-lg hover:bg-green-700 transition">
-                    อัปเดตสถานะทั้งหมด
-                </button>
-            </form>
+            <button 
+                @click="confirmDeal()"
+                :disabled="myConfirmed || isComplete"
+                class="w-full py-4 rounded-xl font-bold text-lg shadow-lg transition transform hover:scale-[1.02]"
+                :class="
+                    isComplete ? 'bg-green-600 text-white cursor-default' : 
+                    myConfirmed ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 
+                    'bg-blue-600 hover:bg-blue-700 text-white'
+                "
+            >
+                <span x-show="!myConfirmed && !isComplete">👍 ยืนยันรับ/ส่งของเรียบร้อย</span>
+                <span x-show="myConfirmed && !isComplete">รออีกฝ่ายยืนยัน...</span>
+                <span x-show="isComplete">🎉 การแลกเปลี่ยนเสร็จสมบูรณ์!</span>
+            </button>
+            
+            <a href="{% url 'request_page' %}" class="block text-center mt-4 text-gray-500 hover:text-gray-700 text-sm">
+                กลับหน้ารายการคำขอ
+            </a>
         </div>
-    </section>
 
+        <div x-show="isComplete" 
+             x-transition.opacity
+             class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10"
+             style="display: none;">
+            <div class="text-green-500 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">ยินดีด้วย! ดีลสำเร็จแล้ว</h3>
+            <p class="text-gray-600 mb-6">ระบบได้บันทึกสถานะเรียบร้อยแล้ว</p>
+            <a href="{% url 'request_page' %}" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                กลับสู่หน้าหลัก
+            </a>
+        </div>
+
+    </section>
 </main>
+
+<script>
+function dealConfirmation(requestId) {
+    return {
+        myConfirmed: false,
+        otherConfirmed: false,
+        isComplete: false,
+        interval: null,
+
+        startPolling() {
+            this.fetchStatus();
+            this.interval = setInterval(() => {
+                if(!this.isComplete) this.fetchStatus();
+            }, 3000);
+        },
+
+        async fetchStatus() {
+            try {
+                const res = await fetch(`/requests/api/deal/status/${requestId}/`);
+                const data = await res.json();
+                
+                this.myConfirmed = data.my_confirmed;
+                this.otherConfirmed = data.other_confirmed;
+                this.isComplete = data.is_complete;
+
+                if (this.isComplete) {
+                    clearInterval(this.interval);
+                }
+            } catch (err) {
+                console.error("Error fetching status", err);
+            }
+        },
+
+        async confirmDeal() {
+            if (!confirm("ยืนยันว่าการแลกเปลี่ยนเสร็จสิ้นแล้ว?")) return;
+
+            try {
+                const res = await fetch(`/requests/api/deal/confirm/${requestId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    this.fetchStatus(); // อัปเดตทันที
+                }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+            }
+        }
+    }
+}
+</script>
 {% endblock %}

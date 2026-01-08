@@ -44,5 +44,8 @@ class Request(models.Model):
     user1_position_confirmed = models.BooleanField(default=False)
     user2_position_confirmed = models.BooleanField(default=False)
 
+    user1_deal_confirmed = models.BooleanField(default=False) # ฝั่งคนขอ (Requester)
+    user2_deal_confirmed = models.BooleanField(default=False) # ฝั่งเจ้าของโพสต์ (Owner)
+
     def __str__(self):
         return f"Request by {self.requester} for {self.post} - Status: {self.status}"

@@ -296,21 +296,62 @@ def next_step(request, request_id):
         "offered_post": offered_post,
     })
 
-@login_required
-def update_multiple_post_status(request):
-    if request.method == "POST":
-        post_ids = request.POST.get("post_ids", "").split(",")
-        status = request.POST.get("status")
-        
-        # กรองเฉพาะ Post ที่ User คนนี้เป็นเจ้าของจริงๆ เท่านั้น
-        posts = Post.objects.filter(id__in=post_ids, owner=request.user)
-        
-        if not posts.exists():
-             messages.error(request, "คุณไม่มีสิทธิ์แก้ไขสถานะโพสต์เหล่านี้")
-             return redirect("home")
 
-        # Update สถานะ
-        posts.update(status=status)
+@login_required
+def api_deal_status(request, request_id):
+    req = get_object_or_404(Request, id=request_id)
+    if request.user not in [req.requester, req.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+
+    # เช็คว่าใครเป็นใคร
+    if request.user == req.requester:
+        my_confirmed = req.user1_deal_confirmed
+        other_confirmed = req.user2_deal_confirmed
+    else:
+        my_confirmed = req.user2_deal_confirmed
+        other_confirmed = req.user1_deal_confirmed
+
+    # เช็คว่าจบหรือยัง (ทั้งคู่ True)
+    is_complete = req.user1_deal_confirmed and req.user2_deal_confirmed
+
+    return JsonResponse({
+        "my_confirmed": my_confirmed,
+        "other_confirmed": other_confirmed,
+        "is_complete": is_complete
+    })
+
+@login_required
+def api_confirm_deal(request, request_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
         
-        messages.success(request, "อัปเดตสถานะเรียบร้อยแล้ว")
-        return redirect("home") # หรือ path ที่เหมาะสม
+    req = get_object_or_404(Request, id=request_id)
+    if request.user not in [req.requester, req.post.owner]:
+        return JsonResponse({"error": "permission denied"}, status=403)
+
+    # อัปเดตสถานะฝั่งตัวเอง
+    if request.user == req.requester:
+        req.user1_deal_confirmed = True
+    else:
+        req.user2_deal_confirmed = True
+    
+    req.save()
+
+    # ตรวจสอบว่า "ครบองค์ประชุม" หรือยัง
+    if req.user1_deal_confirmed and req.user2_deal_confirmed:
+        # 1. อัปเดตสถานะ Request เป็น Completed
+        req.status = 'completed' # หรือสถานะที่คุณตั้งไว้ว่าจบงาน
+        req.save()
+
+        # 2. ปิดโพสต์หลัก (Post)
+        req.post.status = 'completed' # หรือ 'closed' ตามระบบโพสต์ของคุณ
+        req.post.save()
+
+        # 3. (ถ้าเป็นการแลก) ปิดโพสต์ของที่เอามาแลกด้วย (Offered Product)
+        if req.offered_product:
+            req.offered_product.status = 'completed'
+            req.offered_product.save()
+
+        return JsonResponse({"ok": True, "status": "finished"})
+
+    return JsonResponse({"ok": True, "status": "waiting"})

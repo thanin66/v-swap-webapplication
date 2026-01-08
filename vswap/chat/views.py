@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from .models import Message
 
+from item_requests.models import Request as TransactionRequest 
+
 User = get_user_model()
 
 @login_required
@@ -11,16 +13,15 @@ def chat_room(request, user_id):
     other_user = get_object_or_404(User, id=user_id)
 
     # 1. MARK AS READ: อ่านข้อความที่ 'other_user' ส่งมาหาเรา
-    # เฉพาะข้อความที่ยังไม่อ่าน (is_read=False) ให้แก้เป็น True
     Message.objects.filter(sender=other_user, receiver=request.user, is_read=False).update(is_read=True)
 
-    # 2. ดึงประวัติการคุย (เหมือนเดิม)
+    # 2. MESSAGES: ดึงประวัติการคุย
     messages = Message.objects.filter(
         Q(sender=request.user, receiver=other_user) | 
         Q(sender=other_user, receiver=request.user)
     ).order_by('timestamp')
 
-    # 3. Sidebar Logic (เพิ่มส่วนนับ unread)
+    # 3. SIDEBAR USERS: รายชื่อคนที่เคยคุยด้วย (Logic เดิม)
     sent_to = Message.objects.filter(sender=request.user).values_list('receiver', flat=True)
     received_from = Message.objects.filter(receiver=request.user).values_list('sender', flat=True)
     contact_ids = set(sent_to) | set(received_from)
@@ -28,13 +29,11 @@ def chat_room(request, user_id):
     chat_list = []
     for contact_id in contact_ids:
         friend = User.objects.get(id=contact_id)
-        
         last_msg = Message.objects.filter(
             Q(sender=request.user, receiver=friend) | 
             Q(sender=friend, receiver=request.user)
         ).order_by('-timestamp').first()
         
-        # +++ เพิ่มตรงนี้: นับจำนวนที่เพื่อนส่งมาแล้วเรายังไม่อ่าน +++
         unread_count = Message.objects.filter(sender=friend, receiver=request.user, is_read=False).count()
         
         chat_list.append({
@@ -42,15 +41,20 @@ def chat_room(request, user_id):
             'last_message': last_msg.content if last_msg else "",
             'timestamp': last_msg.timestamp if last_msg else None,
             'is_active': (friend.id == other_user.id),
-            'unread_count': unread_count # ส่งค่าไปหน้าเว็บ
+            'unread_count': unread_count
         })
-    
     chat_list.sort(key=lambda x: x['timestamp'] if x['timestamp'] else "", reverse=True)
 
-    return render(request, 'chat/room.html', { 
+    transaction_requests = TransactionRequest.objects.filter(
+        (Q(requester=request.user) & Q(post__owner=other_user)) |
+        (Q(requester=other_user) & Q(post__owner=request.user))
+    ).select_related('post', 'offered_product').order_by('-created_at')
+
+    return render(request, 'chat/room.html', {
         'other_user': other_user,
         'messages': messages,
-        'chat_list': chat_list, 
+        'chat_list': chat_list,
+        'transaction_requests': transaction_requests, 
     })
 
 @login_required

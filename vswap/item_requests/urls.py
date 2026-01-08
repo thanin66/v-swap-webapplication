@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/map/submit/<int:request_id>/', views.api_submit_map_position, name='api_submit_map_position'),
 
     path("next-step/<int:request_id>/", views.next_step, name="next_step"),
-    path('posts/update-multiple-status/', views.update_multiple_post_status, name='update_multiple_post_status'),
+    path('api/deal/status/<int:request_id>/', views.api_deal_status, name='api_deal_status'),
+    path('api/deal/confirm/<int:request_id>/', views.api_confirm_deal, name='api_confirm_deal'),
 
 ]

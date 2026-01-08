@@ -5,86 +5,85 @@
 {% block content %}
 
 <style>
+    /* CSS Scrollbar เดิมของคุณ */
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    
+    /* Animation สำหรับการเปลี่ยน Card */
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
-<div class="max-w-6xl mx-auto mt-6 p-4 h-[85vh]"> 
+<div class="max-w-[90rem] mx-auto mt-6 p-4 h-[85vh]"> 
     
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-full border border-gray-200">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 h-full border border-gray-200">
         
-        <div class="hidden md:flex flex-col border-r border-gray-200 bg-white h-full overflow-hidden">
-            
+        <div class="hidden md:flex flex-col border-r border-gray-200 bg-white h-full overflow-hidden col-span-1">
             <div class="flex-none p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 h-[72px]">
-                <h2 class="font-bold text-lg text-gray-800">Messages</h2>
-                <a href="{% url 'home' %}" class="text-xs text-blue-600 font-semibold hover:underline">Home</a>
+                <h2 class="font-bold text-lg text-gray-800">แชท</h2>
+                <a href="{% url 'home' %}" class="text-xs text-blue-600 font-semibold hover:underline">กลับหน้าหลัก</a>
             </div>
-
+            
             <div id="sidebar-container" class="flex-1 overflow-y-auto custom-scrollbar min-h-0">
                 {% include "chat/chat_list.html" %}
             </div>
         </div>
 
-        <div class="col-span-2 flex flex-col h-full bg-gray-50 relative overflow-hidden">
+        <div class="col-span-1 md:col-span-2 flex flex-col h-full bg-gray-50 relative overflow-hidden border-r border-gray-200">
             
             <div class="flex-none bg-white p-4 flex items-center justify-between shadow-sm z-10 border-b border-gray-200 h-[72px]">
                 <div class="flex items-center gap-3">
                     <a href="{% url 'home' %}" class="md:hidden text-gray-500 mr-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </a>
+                    
+                    <a href="{% url 'profile_by_id' other_user.id %}" class="flex items-center gap-3 group">
+                        <div style="width: 40px; height: 40px;"
+                            class="relative flex-shrink-0 rounded-full bg-gray-200 overflow-hidden">
+                            {% if other_user.userprofile.profile_picture %}
+                                <img src="{{ other_user.userprofile.profile_picture.url }}"
+                                    class="w-full h-full object-cover">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=random"
+                                    class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
 
-                    <div style="width: 40px; height: 40px;" class="relative flex-shrink-0 rounded-full bg-gray-200 overflow-hidden">
-                        {% if other_user.userprofile.profile_picture %}
-                            <img src="{{ other_user.userprofile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-                        {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=random" style="width: 100%; height: 100%; object-fit: cover;">
-                        {% endif %}
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold leading-tight text-gray-800">{{ other_user.username }}</h2>
-                        <span class="text-xs text-green-500 flex items-center gap-1 font-medium">
-                            Active Now
-                        </span>
-                    </div>
+                        <div>
+                            <h2 class="text-lg font-bold leading-tight text-gray-800 group-hover:text-blue-600">
+                                {{ other_user.username }}
+                            </h2>
+                            <span class="text-xs text-gray-500">สามารถติดต่อได้</span>
+                        </div>
+                    </a>
                 </div>
             </div>
 
             <div id="chat-log" class="flex-1 p-4 overflow-y-auto min-h-0 space-y-4 bg-gray-50 custom-scrollbar">
                 {% for msg in messages %}
-                <div class="flex items-end gap-2 {% if msg.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
-                    
-                    {% if msg.sender != request.user %}
-                        <div style="width: 30px; height: 30px;" class="flex-shrink-0 rounded-full overflow-hidden shadow-sm mb-1 bg-gray-200">
-                            {% if other_user.userprofile.profile_picture %}
-                                <img src="{{ other_user.userprofile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=random" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% endif %}
-                        </div>
-                    {% endif %}
+                    <div class="flex items-end gap-2 {% if msg.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+                        {% if msg.sender != request.user %}
+                            <div style="width: 30px; height: 30px;" class="flex-shrink-0 rounded-full overflow-hidden shadow-sm mb-1 bg-gray-200">
+                                {% if other_user.userprofile.profile_picture %}
+                                    <img src="{{ other_user.userprofile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=random" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                        {% endif %}
 
-                    <div class="max-w-[70%] px-4 py-2 shadow-sm text-sm
-                        {% if msg.sender == request.user %}
-                            bg-blue-600 text-white rounded-2xl rounded-br-none
-                        {% else %}
-                            bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-none
-                        {% endif %}">
-                        <p class="leading-relaxed break-words">{{ msg.content }}</p>
-                        <p class="text-[10px] mt-1 opacity-70 text-right">{{ msg.timestamp|date:"H:i" }}</p>
+                        <div class="max-w-[70%] px-4 py-2 shadow-sm text-sm {% if msg.sender == request.user %} bg-blue-600 text-white rounded-2xl rounded-br-none {% else %} bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-none {% endif %}">
+                            <p class="leading-relaxed break-words">{{ msg.content }}</p>
+                            <p class="text-[10px] mt-1 opacity-70 text-right">{{ msg.timestamp|date:"H:i" }}</p>
+                        </div>
                     </div>
-
-                    {% if msg.sender == request.user %}
-                        <div style="width: 30px; height: 30px;" class="flex-shrink-0 rounded-full overflow-hidden shadow-sm mb-1 bg-gray-200">
-                            {% if request.user.userprofile.profile_picture %}
-                                <img src="{{ request.user.userprofile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=0D8ABC&color=fff" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
                 {% endfor %}
             </div>
 
@@ -93,7 +92,6 @@
                     <input type="text" id="chat-message-input" 
                            class="flex-1 bg-gray-100 text-gray-800 border-0 rounded-full px-5 py-3 focus:outline-none focus:ring-1 focus:ring-blue-500 transition placeholder-gray-500"
                            placeholder="Type a message..." autocomplete="off">
-                    
                     <button type="submit" class="text-blue-600 hover:text-blue-700 p-2 transition hover:bg-blue-50 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
                           <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
@@ -102,67 +100,153 @@
                 </form>
             </div>
         </div>
+
+        <div class="flex flex-col bg-white h-full border-l border-gray-200 col-span-1">
+            
+            <div class="flex-none p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50 h-[72px]">
+                <h2 class="font-bold text-lg text-gray-800">จัดการคำขอ</h2>
+                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">
+                    {{ transaction_requests|length }}
+                </span>
+            </div>
+
+            <div class="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wide">
+                        Select Request
+                    </label>
+                    <div class="relative">
+                        <select id="request-selector" onchange="showRequestDetail(this.value)" 
+                                class="block w-full pl-3 pr-10 py-2.5 text-sm border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg bg-gray-50 border shadow-sm transition cursor-pointer">
+                            {% for req in transaction_requests %}
+                                <option value="req-{{ req.id }}">
+                                    {{ req.post.title|truncatechars:20 }} ({{ req.get_status_display }})
+                                </option>
+                            {% empty %}
+                                <option value="">No transactions</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="request-details-container">
+                    {% for req in transaction_requests %}
+                    <div id="req-{{ req.id }}" class="request-card hidden animate-fade-in space-y-3">
+                        
+                        <div class="w-32 h-32 mx-auto rounded-lg overflow-hidden bg-gray-100 border border-gray-200 relative group shadow-sm">
+                            {% if req.post.image %}
+                                <img src="{{ req.post.image.url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            {% else %}
+                                <div class="flex items-center justify-center w-full h-full text-gray-400 text-xs">No Image</div>
+                            {% endif %}
+                            
+                            <div class="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[8px] font-bold shadow-sm uppercase tracking-wide
+                                {% if req.status == 'accepted' %} bg-green-500 text-white
+                                {% elif req.status == 'rejected' %} bg-red-500 text-white
+                                {% else %} bg-yellow-400 text-white {% endif %}">
+                                {{ req.get_status_display }}
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <h3 class="font-bold text-gray-900 text-base leading-tight">{{ req.post.title }}</h3>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{{ req.get_request_type_display }}</span> 
+                                • {{ req.created_at|date:"d M H:i" }}
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
+                            {% if req.request_type == 'swap' and req.offered_product %}
+                                <p class="text-gray-600 text-xs uppercase mb-1">แลกกับ:</p>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 relative shadow-sm">
+                                        {% if req.offered_product.image %}
+                                            <img src="{{ req.offered_product.image.url }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                             <div class="flex items-center justify-center w-full h-full text-gray-400 text-[8px]">No Image</div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="font-semibold text-gray-800 text-sm">{{ req.offered_product.title }}</span>
+                                </div>
+                                {% elif req.amount and req.post.buysell %}
+                                    <p class="text-gray-600">
+                                        ราคาที่ตั้ง :
+                                        <span class="font-bold text-green-600 text-lg">
+                                            ฿{{ req.post.buysell.price }}
+                                        </span>
+                                    </p>
+                                    <p class="text-gray-600">
+                                        ที่ผู้ใช้เสนอ :
+                                        <span class="font-bold text-green-600 text-lg">
+                                            ฿{{ req.amount }}
+                                        </span>
+                                    </p>
+                                {% endif %}
+                        </div>
+
+                        <div class="pt-2">
+                            {% if req.status == 'accepted' %}
+                                <a href="{% url 'request_map_confirm' req.id %}" 
+                                   class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition transform hover:scale-[1.02] text-sm">
+                                    เลือกจุดนัดรับบนแผนที่ →
+                                </a>
+                            {% elif req.status == 'pending' %}
+                                 <a href="{% url 'requests' %}" 
+                                   class="block w-full text-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition text-sm">
+                                    เช็คกล่องคำขอ
+                                </a>
+                                <p class="text-[10px] text-center text-gray-400 mt-2">กำลังรอผู้ใช้ยืนยัน</p>
+                            {% else %}
+                                <button disabled class="block w-full bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-lg cursor-not-allowed text-sm">
+                                    จบการทำงาน (Closed)
+                                </button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 flex flex-col items-center justify-center h-full">
+                        <div class="bg-gray-100 rounded-full p-4 mb-3 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm">No active transactions.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-{{ request.user.id|json_script:"user_id" }}
+{{ other_user.id|json_script:"other-user-id" }}
+{{ request.user.username|json_script:"json-username" }}
 
 <script>
-    const myId = JSON.parse(document.getElementById('user_id').textContent);
-    const otherUserId = "{{ other_user.id }}";
-    
-    // Config Avatar URLs
-    const myAvatarUrl = "{% if request.user.userprofile.profile_picture %}{{ request.user.userprofile.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.username }}&background=0D8ABC&color=fff{% endif %}";
-    const otherAvatarUrl = "{% if other_user.userprofile.profile_picture %}{{ other_user.userprofile.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ other_user.username }}&background=random{% endif %}";
+    const otherUserId = JSON.parse(document.getElementById('other-user-id').textContent);
+    const myUsername = JSON.parse(document.getElementById('json-username').textContent);
+
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + otherUserId + '/'
+    );
 
     const chatLog = document.querySelector('#chat-log');
     
     function scrollToBottom() {
         chatLog.scrollTop = chatLog.scrollHeight;
     }
-    
-    // Auto Scroll on Load
-    scrollToBottom();
-    setTimeout(scrollToBottom, 100);
-
-    // WebSocket Connection
-    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const chatSocket = new WebSocket(
-        wsScheme + '://' + window.location.host + '/ws/chat/' + otherUserId + '/'
-    );
+    scrollToBottom(); 
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const message = data.message;
-        const senderId = data.sender_id;
-        const isMe = (senderId === myId);
-
-        const now = new Date();
-        const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-        const wrapper = document.createElement('div');
-        wrapper.className = `flex items-end gap-2 mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
-
-        const currentAvatarUrl = isMe ? myAvatarUrl : otherAvatarUrl;
-
-        const avatarHtml = `
-            <div style="width: 30px; height: 30px;" class="flex-shrink-0 rounded-full overflow-hidden shadow-sm mb-1 bg-gray-200">
-                <img src="${currentAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-        `;
-
-        const messageHtml = `
-            <div class="max-w-[70%] px-4 py-2 shadow-sm text-sm ${
-                isMe ? 'bg-blue-600 text-white rounded-2xl rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-none'
-            }">
-                <p class="leading-relaxed break-words">${message}</p>
-                <p class="text-[10px] mt-1 opacity-70 text-right">${timeString}</p>
-            </div>
-        `;
-
-        wrapper.innerHTML = isMe ? (messageHtml + avatarHtml) : (avatarHtml + messageHtml);
-        chatLog.appendChild(wrapper);
-        scrollToBottom();
+        const sender = data.sender_username; 
+        
+        location.reload(); 
     };
 
     chatSocket.onclose = function(e) {
@@ -179,26 +263,33 @@
         }
     };
 
-    // ==========================================
-    // ส่วนที่เพิ่มใหม่: อัปเดต Sidebar อัตโนมัติ
-    // ==========================================
     function updateSidebar() {
-        const container = document.getElementById('sidebar-container');
-        // เรียก API ไปหลังบ้าน โดยส่ง ID ของคนที่เราคุยอยู่ไปด้วย เพื่อให้ไฮไลท์สีฟ้าถูกคน
-        fetch(`/chat/sidebar-api/${otherUserId}/`)
-            .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
-                return response.text();
-            })
-            .then(html => {
-                // เอา HTML ใหม่ยัดใส่เข้าไปแทนที่ของเดิม
-                container.innerHTML = html;
-            })
-            .catch(err => console.error('Sidebar update error:', err));
+        // ... โค้ด fetch sidebar เดิม ...
     }
 
-    // สั่งให้ทำงานทุกๆ 3 วินาที (3000 ms)
-    setInterval(updateSidebar, 3000);
+    function showRequestDetail(elementId) {
+        document.querySelectorAll('.request-card').forEach(el => {
+            el.classList.add('hidden');
+        });
+        
+        if (elementId && elementId.startsWith('req-')) {
+            const selectedEl = document.getElementById(elementId);
+            if(selectedEl) {
+                selectedEl.classList.remove('hidden');
+            }
+        }
+    }
 
+    document.addEventListener("DOMContentLoaded", function() {
+        const selector = document.getElementById('request-selector');
+        if (selector && selector.options.length > 0) {
+             const firstVal = selector.options[0].value;
+             if(firstVal) {
+                 selector.value = firstVal;
+                 showRequestDetail(firstVal);
+             }
+        }
+    });
 </script>
+
 {% endblock %}

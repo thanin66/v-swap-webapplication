@@ -64,7 +64,7 @@
 
                             {% if req.status == 'accepted' %}
                                 <div class="mt-4 flex gap-3">   
-                                    <a href="{% url 'request_confirm' req.id  %}"
+                                    <a href="{% url 'chat_room' req.post.owner.id  %}"
                                        class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
                                         ติดต่อกลับ
                                     </a>
@@ -128,7 +128,7 @@
                                 </div>
                             {% elif req.status == 'accepted' %}
                                 <div class="mt-4 flex gap-3">   
-                                    <a href="{% url 'request_confirm' req.id  %}"
+                                    <a href="{% url 'chat_room' req.requester.id  %}"
                                        class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
                                         ติดต่อกลับ
                                     </a>
