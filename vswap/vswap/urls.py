@@ -32,6 +32,9 @@ urlpatterns = [
     path('vswap-admin/', include('adminpanel.urls')),
 
     path('chat/', include('chat.urls')),
+
+    path('notifications/', include('notifications.urls')),
+    
 ]
 
 

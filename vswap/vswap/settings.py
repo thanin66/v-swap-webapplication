@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'theme',
     'channels',
     'chat',
+    'notifications',
 ]
 
 
