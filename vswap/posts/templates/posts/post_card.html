@@ -67,7 +67,7 @@
     </div>
 
     <div class="mt-auto border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-        {% if user == post.owner %}
+        {% if post.owner == request.user %}
             <div class="flex gap-2">
                 <a href="{% url 'post_edit' post.id %}" class="w-1/2 text-center rounded-lg bg-indigo-600 py-2.5 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
                     แก้ไข
