@@ -58,7 +58,9 @@ def send_request(request, post_id):
             if post_type == 'swap':
                 if offered_product and offered_product.owner != request.user:
                     return HttpResponseForbidden("คุณไม่สามารถใช้ของคนอื่นมาแลกได้")
-
+                if offered_product.status == 'completed':
+                        messages.error(request, "สินค้าที่คุณเลือกได้ถูกแลกเปลี่ยนไปแล้ว")
+                        return redirect('post_detail', pk=target_post.id)
             # บันทึกคำขอ
             Request.objects.create(
                 post=target_post, # Django จะรู้เองว่าต้องลิงก์กับตัวแม่

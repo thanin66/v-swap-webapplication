@@ -23,14 +23,10 @@ from .matching import find_matches_for_user
 def post_list(request):
     # แยก QuerySet ส่งไปให้ template
     # 1. สินค้าที่วางขาย (Sale)
-    sale_posts = BuySell.objects.filter(is_buying=False).order_by('-created_at')
-    
-    # 2. รายการที่คนตามหา (Wishlist)
-    wishlist_posts = BuySell.objects.filter(is_buying=True).order_by('-created_at')
-    
-    donation_posts = Donation.objects.all().order_by('-created_at')
-    swap_posts = Swap.objects.all().order_by('-created_at')
-    
+    sale_posts = BuySell.objects.filter(is_buying=False, status='available').order_by('-created_at')
+    wishlist_posts = BuySell.objects.filter(is_buying=True, status='available').order_by('-created_at')
+    donation_posts = Donation.objects.filter(status='available').order_by('-created_at')
+    swap_posts = Swap.objects.filter(status='available').order_by('-created_at')
     # Matching Logic (คงเดิมได้เลย เพราะมันใช้ is_buying=True เป็น demand อยู่แล้ว)
     matches_incoming = []
     matches_outgoing = []
@@ -251,7 +247,7 @@ def search_page(request):
             Q(title__icontains=query) |
             Q(description__icontains=query) |
             Q(owner__username__icontains=query)
-        ).select_related('owner').order_by('-created_at')
+        ).filter(status='available').select_related('owner').order_by('-created_at')
     
     context = {
         'posts': posts,

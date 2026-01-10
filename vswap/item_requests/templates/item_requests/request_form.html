@@ -111,20 +111,19 @@
                 ยืนยันการส่งคำขอ
             </button>
         </form>
-    </div>
 
-    <div class="button-group">
-        {% if post.post_type == 'swap' %}
-            <a href="{% url 'post_create' post_type='swap' %}?next={{ post.id }}">
-                <button type="button" class="btn btn-secondary">สร้างโพสต์ใหม่สำหรับแลกเปลี่ยน</button>
+        <div class="button-group">
+            {% if post.post_type == 'swap' %}
+                <a href="{% url 'post_create' post_type='swap' %}?next={{ post.id }}" class="btn btn-secondary" style="text-decoration: none; text-align: center;">
+                    สร้างโพสต์ใหม่สำหรับแลกเปลี่ยน
+                </a>
+                <p class="small-text">หากคุณต้องการแลกเปลี่ยนแต่ยังไม่มีโพสต์ที่เหมาะสม</p>
+            {% endif %}
+
+            <a href="{% url 'post_detail' pk=post.id %}" class="btn btn-secondary" style="text-decoration: none; text-align: center;">
+                กลับสู่หน้าโพสต์
             </a>
-            <p class="small-text">หากคุณต้องการแลกเปลี่ยนแต่ยังไม่มีโพสต์ที่เหมาะสม</p>
-        {% endif %}
-
-        <a href="{% url 'post_detail' pk=post.id %}">
-            <button type="button" class="btn btn-secondary">กลับสู่หน้าโพสต์</button>
-        </a>
+        </div>
     </div>
-</div>
 
 {% endblock %}

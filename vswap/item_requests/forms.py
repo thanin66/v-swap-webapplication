@@ -8,19 +8,21 @@ class SwapRequestForm(forms.Form):
     
 
     def clean_offered_product(self):
-        product = self.cleaned_data.get('offered_product')
-        # ตรวจสอบว่า User เป็นเจ้าของของชิ้นที่เอามาเสนอจริงไหม
-        # self.initial['user'] ต้องถูกส่งมาตอน init form หรือดึงจาก request ใน view แทน
-        # แต่วิธีที่ง่ายที่สุดคือ เช็คใน View.py ตอนรับ POST ครับ (ดูข้อถัดไป)
-        return product
+            product = self.cleaned_data.get('offered_product')
+            # เช็คเพิ่มเติมเผื่อผ่านหน้า Form มาได้ แต่สถานะเปลี่ยนพอดี
+            if product and product.status == 'completed':
+                raise forms.ValidationError("สินค้านี้ได้ถูกแลกเปลี่ยนไปแล้ว ไม่สามารถนำมาเสนอได้อีก")
+            return product
         
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if user:
             # Assumes Post model has a 'type' field and a 'owner' field
-            self.fields['offered_product'].queryset = Post.objects.filter(owner=user, post_type='swap')
-
+            self.fields['offered_product'].queryset = Post.objects.filter(
+                            owner=user, 
+                            post_type='swap'
+                        ).exclude(status='completed')
 class SaleRequestForm(forms.Form):
     message = forms.CharField(widget=forms.Textarea, required=False, label="ข้อความ")
     amount = forms.DecimalField(max_digits=10, decimal_places=2, label="จำนวนเงินที่เสนอ")
