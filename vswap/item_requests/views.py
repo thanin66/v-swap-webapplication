@@ -3,20 +3,21 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.urls import reverse
 from posts.models import Post
 from .models import Request
 from .forms import SwapRequestForm, SaleRequestForm, DonateRequestForm
 
 from posts.models import Post, Swap, BuySell, Donation
+from notifications.models import Notification
 
 @login_required
 def send_request(request, post_id):
     # 1. ดึง Post แม่มาก่อน
     target_post = get_object_or_404(Post, id=post_id)
     post_type = target_post.post_type
+    post = get_object_or_404(Post, pk=post_id)
 
-    # 2. [สำคัญ] แปลงร่างจาก Post ธรรมดา ให้เป็นลูก (Swap, BuySell, Donation) 
-    # เพื่อให้ Template เรียกใช้ .is_buying หรือ .price ได้
     if hasattr(target_post, 'buysell'):
         target_post = target_post.buysell
     elif hasattr(target_post, 'swap'):
@@ -24,7 +25,7 @@ def send_request(request, post_id):
     elif hasattr(target_post, 'donation'):
         target_post = target_post.donation
 
-    # ตรวจสอบว่าผู้ใช้กำลังส่งคำขอหาโพสต์ของตัวเองหรือไม่
+
     if request.user == target_post.owner:
         messages.error(request, "คุณไม่สามารถส่งคำขอสำหรับโพสต์ของคุณเองได้")
         return redirect('post_detail', pk=target_post.id)
@@ -36,6 +37,7 @@ def send_request(request, post_id):
 
     # จัดการการประมวลผลคำขอ (POST request)
     if request.method == 'POST':
+        
         if post_type == 'swap':
             form = SwapRequestForm(request.POST, user=request.user)
             # เราจะเช็คความเป็นเจ้าของหลังจาก form.is_valid() แล้วเท่านั้น
@@ -71,8 +73,14 @@ def send_request(request, post_id):
                 offered_product=offered_product,
                 reason=reason
             )
+            if post.owner != request.user: # ป้องกันแจ้งเตือนตัวเอง
+                Notification.objects.create(
+                    recipient=post.owner,  # ส่งหาเจ้าของของ
+                    message=f"คุณ {request.user.username} สนใจสินค้า '{post.title}' ของคุณ",
+                    link=reverse('chat_room', args=[request.user.id]),
+                    type='message'
+                )
             
-            messages.success(request, "คำขอของคุณถูกส่งแล้ว 🎉")
             return redirect('post_detail', pk=target_post.id)
             
     # แสดงฟอร์มคำขอ (GET request)
@@ -109,6 +117,17 @@ def respond_request(request, request_id, action):
         messages.error(request, "คำสั่งไม่ถูกต้อง")
         return redirect('request_page')
 
+    if action == 'accept':
+        msg_text = f"คำขอแลกเปลี่ยนของคุณได้รับการตอบรับแล้ว"
+    elif action == 'reject':
+        msg_text = f"คำขอแลกเปลี่ยนของคุณถูกปฏิเสธ"
+
+    Notification.objects.create(
+        recipient=swap_request.requester, # ส่งหาคนขอ
+        message=msg_text,
+        link=reverse('request_page'),
+        type='system'
+)
     swap_request.save()
     messages.success(request, f"คุณได้ {swap_request.get_status_display()} คำขอแล้ว")
 
@@ -217,7 +236,7 @@ def request_confirm(request, request_id):
         if swap_request.user1_status == 'accepted' and swap_request.user2_status == 'accepted':
             swap_request.status = 'accepted'
             swap_request.save()
-            messages.success(request, "การแลกเปลี่ยนเสร็จสมบูรณ์ 🎉")
+            messages.success(request, "การแลกเปลี่ยนเสร็จสมบูรณ์ ")
             return redirect('request_page')
 
         messages.success(request, "คุณได้ยืนยันคำขอแล้ว รออีกฝ่ายยืนยัน")
@@ -281,6 +300,12 @@ def api_submit_map_position(request, request_id):
     else:
         req.user2_position_confirmed = True
 
+    Notification.objects.create(
+        recipient=req.post.owner if request.user == req.requester else req.requester,
+        message=f"ผู้ใช้ {request.user.username} ได้อัปเดตตำแหน่งสำหรับการแลกเปลี่ยน '{req.post.title}'",
+        link=reverse('request_map_confirm', args=[req.id]),
+        type='system'
+    )
     req.save()
 
     return JsonResponse({"ok": True, "reset": position_changed})
@@ -339,6 +364,8 @@ def api_confirm_deal(request, request_id):
     
     req.save()
 
+    other_party = req.post.owner if request.user == req.requester else req.requester
+
     # ตรวจสอบว่า "ครบองค์ประชุม" หรือยัง
     if req.user1_deal_confirmed and req.user2_deal_confirmed:
         # 1. อัปเดตสถานะ Request เป็น Completed
@@ -354,6 +381,20 @@ def api_confirm_deal(request, request_id):
             req.offered_product.status = 'completed'
             req.offered_product.save()
 
-        return JsonResponse({"ok": True, "status": "finished"})
+        for user in [req.requester, req.post.owner]:
+            Notification.objects.create(
+            recipient=user,
+            message=f"การแลกเปลี่ยน '{req.post.title}' สำเร็จสมบูรณ์แล้ว ขอบคุณที่ใช้บริการ",
+            link=reverse('request_page'), # หรือหน้า history
+            type='system'
+        )
 
-    return JsonResponse({"ok": True, "status": "waiting"})
+        return JsonResponse({"ok": True, "status": "finished"})
+    else:
+        Notification.objects.create(
+                recipient=other_party,
+                message=f"คุณ {request.user.username} ยืนยันการแลกเปลี่ยนแล้ว กรุณายืนยันในส่วนของคุณ",
+                link=reverse('next_step', args=[req.id]), 
+                type='system'
+            )
+        return JsonResponse({"ok": True, "status": "finished"})

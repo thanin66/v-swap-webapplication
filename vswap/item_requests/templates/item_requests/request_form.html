@@ -84,11 +84,17 @@
         <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             {% if post.post_type == 'buy_sell' %}
                 {% if post.is_buying %}
-                    <p class="post-type text-pink-600">
+                    <p class="post-type text-blue-600">
+                        <strong>งบประมาณผู้ซื้อ</strong> {{post.buysell.price}}
+                    </h2>
+                    <p class="text-black-600">
                         ประเภทคำขอ: <strong>เสนอขาย (Wishlist)</strong>
                         <br><span class="text-sm text-gray-500">ผู้โพสต์ต้องการซื้อ คุณกำลังเสนอขาย</span>
                     </p>
                 {% else %}
+                    <p class="text-black-600">
+                        <strong>ผู้ขายตั้งราคา</strong> {{post.buysell.price}}
+                    </h2>
                     <p class="post-type text-green-600">
                         ประเภทคำขอ: <strong>ขอซื้อสินค้า</strong>
                         <br><span class="text-sm text-gray-500">ผู้โพสต์ต้องการขาย คุณกำลังขอซื้อ</span>
@@ -96,8 +102,11 @@
                 {% endif %}
 
             {% elif post.post_type == 'swap' %}
+                <p class="text-black-600">
+                    <strong>ผู้โพสต์อยากแลกกับ : </strong> {{post.swap.swap_item_description}}
+                </h2>
                 <p class="post-type text-blue-600">ประเภทคำขอ: <strong>แลกเปลี่ยนของ</strong></p>
-
+                
             {% elif post.post_type == 'donate' or post.post_type == 'donation' %}
                 <p class="post-type text-purple-600">ประเภทคำขอ: <strong>เสนอรับ</strong></p>
             {% endif %}

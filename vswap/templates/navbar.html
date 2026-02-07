@@ -203,15 +203,17 @@
                         <template x-for="note in notifications" :key="note.id">
                             <a :href="note.link" 
                             @click.prevent="markAsRead(note.id, note.link)"
-                            class="block px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-none transition group cursor-pointer">
-                                
+                            class="block px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-none transition group cursor-pointer"
+                            
+                            :class="note.is_read ? 'bg-white opacity-70' : 'bg-blue-50'" >
+                            
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0 mr-3 mt-1">
                                         <template x-if="note.type === 'system'">
-                                            <span class="text-blue-500">📢</span>
+                                            <p>ระบบ</p>
                                         </template>
                                         <template x-if="note.type === 'message'">
-                                            <span class="text-green-500">💬</span>
+                                            <p>ข้อความ</p>
                                         </template>
                                     </div>
                                     <div>

@@ -99,10 +99,6 @@ def post_create(request, post_type):
 
     return render(request, 'posts/post_form.html', {'form': form, 'post_type': post_type})
 
-    if post_type not in form_mapping:
-        return redirect('post_list') # หรือ handle error ตามเหมาะสม
-
-
 @login_required
 def post_edit(request, pk):
     # 1. ดึงข้อมูล Post ตัวแม่มาก่อน
@@ -174,13 +170,6 @@ def post_delete(request, pk):
         return redirect('post_list')
     return render(request, 'posts/post_confirm_delete.html', {'post': post})
 
-@login_required
-def send_request(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == "POST":
-        # Logic to handle sending request (e.g., sending email or notification)
-        return redirect('post_detail', pk=post.pk)
-    return render(request, 'posts/send_request.html', {'post': post})
 
 def map_view(request):
     # ดึงโพสต์ทั้งหมดที่มี lat/lng

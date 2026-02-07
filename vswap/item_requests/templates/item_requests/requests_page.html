@@ -14,7 +14,7 @@
                 ? 'bg-blue-600 text-white ring-2 ring-blue-300' 
                 : 'bg-gray-200 text-gray-700'"
             class="flex-1 px-4 py-2 rounded-xl font-medium transition">
-            คำขอที่ฉันส่ง
+            คำขอที่ได้รับ
         </button>
         
         <button 
@@ -23,7 +23,7 @@
                 ? 'bg-blue-600 text-white ring-2 ring-blue-300' 
                 : 'bg-gray-200 text-gray-700'"
             class="flex-1 px-4 py-2 rounded-xl font-medium transition">
-            คำขอที่ได้รับ
+            คำขอที่ฉันส่ง
         </button>
     </div>
     
@@ -32,57 +32,6 @@
 
         <!-- LEFT TAB -->
         <div x-show="tab === 'left'" >
-
-            <h1 class="text-2xl font-bold mb-6">คำขอที่ฉันส่ง</h1>
-
-            {% if my_requests and my_requests|length > 0 %}
-                <div class="space-y-4">
-
-                    {% for req in my_requests %}
-                        <div class="bg-white p-5 rounded-xl shadow border">
-                            <p class="text-lg">
-                                คุณได้ส่งคำขอสำหรับ  
-                                "<a href="{% url 'post_detail' pk=req.post.id %}" 
-                                   class="text-blue-600 hover:underline">
-                                    {{ req.post.title }}
-                                </a>"
-                            </p>
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                สถานะ: <span class="font-semibold">{{ req.get_status_display }}</span>
-                            </p>
-
-                            {% if req.offered_product %}
-                                <p class="text-sm mt-2">
-                                    เสนอแลกด้วย:  
-                                    <a href="{% url 'post_detail' pk=req.offered_product.id %}" 
-                                       class="text-purple-600 hover:underline font-medium">
-                                        {{ req.offered_product.title }}
-                                    </a>
-                                </p>
-                            {% endif %}
-
-                            {% if req.status == 'accepted' %}
-                                <div class="mt-4 flex gap-3">   
-                                    <a href="{% url 'chat_room' req.post.owner.id  %}"
-                                       class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
-                                        ติดต่อกลับ
-                                    </a>
-                                </div>  
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-
-                </div>
-            {% else %}
-                <p class="text-gray-600 text-center mt-6">ยังไม่มีคำขอที่ส่ง</p>
-            {% endif %}
-        </div>
-
-
-        <!-- RIGHT TAB -->
-        <div x-show="tab === 'right'" >
-
             <h1 class="text-2xl font-bold mb-6">คำขอที่ได้รับ</h1>
 
             {% if incoming_requests and incoming_requests|length > 0 %}
@@ -151,6 +100,55 @@
                 </div>
             {% else %}
                 <p class="text-gray-600 text-center mt-6">ยังไม่มีคำขอที่ได้รับ</p>
+            {% endif %}
+        </div>
+
+
+        <!-- RIGHT TAB -->
+        <div x-show="tab === 'right'" >
+            <h1 class="text-2xl font-bold mb-6">คำขอที่ฉันส่ง</h1>
+
+            {% if my_requests and my_requests|length > 0 %}
+                <div class="space-y-4">
+
+                    {% for req in my_requests %}
+                        <div class="bg-white p-5 rounded-xl shadow border">
+                            <p class="text-lg">
+                                คุณได้ส่งคำขอสำหรับ  
+                                "<a href="{% url 'post_detail' pk=req.post.id %}" 
+                                   class="text-blue-600 hover:underline">
+                                    {{ req.post.title }}
+                                </a>"
+                            </p>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                สถานะ: <span class="font-semibold">{{ req.get_status_display }}</span>
+                            </p>
+
+                            {% if req.offered_product %}
+                                <p class="text-sm mt-2">
+                                    เสนอแลกด้วย:  
+                                    <a href="{% url 'post_detail' pk=req.offered_product.id %}" 
+                                       class="text-purple-600 hover:underline font-medium">
+                                        {{ req.offered_product.title }}
+                                    </a>
+                                </p>
+                            {% endif %}
+
+                            {% if req.status == 'accepted' %}
+                                <div class="mt-4 flex gap-3">   
+                                    <a href="{% url 'chat_room' req.post.owner.id  %}"
+                                       class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-lg text-sm">
+                                        ติดต่อกลับ
+                                    </a>
+                                </div>  
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-center mt-6">ยังไม่มีคำขอที่ส่ง</p>
             {% endif %}
         </div>
 

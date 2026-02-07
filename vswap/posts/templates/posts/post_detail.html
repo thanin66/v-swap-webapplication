@@ -97,12 +97,12 @@
                             <p class="w-full text-center bg-purple-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-900 transition duration-200 ease-in-out transform hover:scale-105">
                                 หมดแล้ว
                             </p>
-                        {% elif post.get_post_type_display == "แลกของ" or post.get_post_type_display == "swap" %}
+                        {% elif post.post_type == 'swap' %}
                             <a href="{% url 'send_request' post.id %}"
                                class="w-full text-center bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-900 transition duration-200 ease-in-out transform hover:scale-105">
                                 ส่งคำขอแลก
                             </a>
-                        {% elif post.get_post_type_display == "ขาย/รับซื้อ" or post.get_post_type_display == "buy_sell" %}
+                        {% elif post.post_type == 'buy_sell' %}
                             {% if post.is_buying %}
                                 <a href="{% url 'send_request' post.id %}"
                                    class="w-full text-center bg-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-pink-900 transition duration-200 ease-in-out transform hover:scale-105">
@@ -114,7 +114,7 @@
                                     ส่งคำขอซื้อ
                                 </a>
                             {% endif %}
-                        {% elif post.get_post_type_display == "ให้ฟรี" or post.get_post_type_display == "donate" %}
+                        {% elif post.post_type == 'donate' %}
                             <a href="{% url 'send_request' post.id %}"
                                class="w-full text-center bg-purple-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-900 transition duration-200 ease-in-out transform hover:scale-105">
                                 ส่งคำขอ

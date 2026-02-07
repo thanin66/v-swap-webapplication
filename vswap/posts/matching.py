@@ -32,7 +32,7 @@ def compute_similarity(source_text, candidates_list, threshold=0.35):
     for i, score in enumerate(scores):
         if score >= threshold:
             matched.append({
-                'my_post': None, # เดี๋ยวไปใส่ค่าข้างนอก
+                'my_post': None, 
                 'matched_post': candidates_list[i]['post'],
                 'score': round(score * 100, 2)
             })
@@ -50,10 +50,6 @@ def find_matches_for_user(user):
     
     supply_candidates = []
     for p in other_posts:
-        # -----------------------------------------------------------
-        # [จุดที่ต้องแก้ไข] แปลง Parent (Post) เป็น Child (BuySell/Swap/Donation)
-        # เพื่อให้ได้ field ที่ครบถ้วน เช่น price, condition
-        # -----------------------------------------------------------
         real_post_obj = p # ค่าเริ่มต้น
         
         if p.post_type == 'buy_sell':
@@ -61,8 +57,6 @@ def find_matches_for_user(user):
             if hasattr(p, 'buysell'):
                 real_post_obj = p.buysell
                 
-                # กรองเพิ่มเติม: ถ้าคนอื่นตั้ง "รับซื้อ" (is_buying=True) 
-                # แปลว่าเขาไม่มีของให้เรา (เขาอยากได้ของ) -> ข้ามไปเลย ไม่นับเป็น Supply
                 if real_post_obj.is_buying:
                     continue
             else:
@@ -112,7 +106,7 @@ def find_matches_for_user(user):
             res['my_post'] = my_post # ระบุว่าโพสต์ไหนของเราที่เจอคู่นี้
             matches_found.append(res)
 
-    # 2.2 กรณีเราลงรับซื้อ (is_buying=True) -> Demand คือ Title/Desc ของเรา
+    #  กรณีเราลงรับซื้อ (is_buying=True) -> Demand คือ Title/Desc ของเรา
     my_buys = BuySell.objects.filter(owner=user, is_buying=True, status='available')
     for my_buy in my_buys:
         # สิ่งที่เราอยากซื้อ
@@ -125,7 +119,7 @@ def find_matches_for_user(user):
             res['my_post'] = my_buy
             matches_found.append(res)
 
-    # เรียงลำดับตามคะแนนความแมทช์รวมทั้งหมดอีกที
+    
     matches_found.sort(key=lambda x: x['score'], reverse=True)
 
-    return matches_found, [] # return matches_incoming, matches_outgoing (ว่างไว้ก่อน)
+    return matches_found, [] 

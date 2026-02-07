@@ -26,12 +26,11 @@ class PostForm(forms.ModelForm):
 class SwapForm(forms.ModelForm):
     class Meta:
         model = Swap
-        fields = ['title', 'description', 'category', 'post_type', 'swap_item_description', 'swap_item_category', 'image', 'leaflet_lat', 'leaflet_lng']
+        fields = ['title', 'description', 'category' , 'swap_item_description', 'swap_item_category', 'image', 'leaflet_lat', 'leaflet_lng']
         labels = {
             'title': 'ของที่จะแลก',
             'description': 'รายละเอียดของสภาพของ',
             'category': 'หมวดหมู่ของที่จะแลก',
-            'post_type': 'ประเภทโพสต์',
             'swap_item_description': 'รายละเอียดของที่อยากได้',
             'swap_item_category': 'หมวดหมู่ของที่อยากได้',
             'image': 'รูปภาพของจริง',
@@ -40,7 +39,6 @@ class SwapForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'เช่น กีตาร์โปร่ง Yamaha'}),
             'description': forms.Textarea(attrs={'class': TAILWIND_INPUT, 'rows': 4}),
             'category': forms.Select(attrs={'class': TAILWIND_INPUT}),
-            'post_type': forms.HiddenInput(),
             'swap_item_description': forms.Textarea(attrs={'class': TAILWIND_INPUT, 'rows': 3, 'placeholder': 'ระบุสิ่งที่อยากได้มาแลก...'}),
             'swap_item_category': forms.Select(attrs={'class': TAILWIND_INPUT}),
             'image': forms.ClearableFileInput(attrs={'class': TAILWIND_INPUT}),
